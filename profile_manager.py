@@ -3,7 +3,7 @@ import json
 
 PROFILES_DIR = "profiles/"
 
-def load_profiles():
+def load_profile_names():
     return [name for name in os.listdir(PROFILES_DIR) if os.path.isdir(os.path.join(PROFILES_DIR, name))]
 
 def create_profile(profile_name):
