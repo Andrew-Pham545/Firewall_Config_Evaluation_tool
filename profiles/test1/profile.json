@@ -1,1 +1,5 @@
-{"name": "test1", "internal_results": null, "external_results": null}
+{
+    "name": "test1",
+    "internal_result": "this is just a string for testing",
+    "external_result": "this is just a string for testing"
+}
