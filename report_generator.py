@@ -19,9 +19,9 @@ def generate_report(profile_name):
     pdf.set_font("Arial", size=12)
     
     pdf.cell(200, 10, txt="Báo cáo quét mạng", ln=True, align='C')
-    pdf.cell(200, 10, txt="Kết quả quét nội bộ:", ln=True)
+    pdf.cell(200, 10, txt="Kết quả quét nội bộ: ", ln=True)
     pdf.multi_cell(0, 10, txt=internal_results)
-    pdf.cell(200, 10, txt="Kết quả quét bên ngoài:", ln=True)
+    pdf.cell(200, 10, txt="Kết quả quét bên ngoài: ", ln=True)
     pdf.multi_cell(0, 10, txt=external_results)
 
     pdf_file_path = os.path.join(profile_path, "report.pdf")

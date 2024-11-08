@@ -1,5 +1,30 @@
 {
     "name": "test1",
-    "internal_result": "this is just a string for testing",
-    "external_result": "this is just a string for testing"
+    "internal_result": {},
+    "external_result": {
+        "Ports": {
+            "tcp": {
+                "80": {
+                    "state": "open",
+                    "service": "http"
+                },
+                "1194": {
+                    "state": "open",
+                    "service": "openvpn"
+                },
+                "8443": {
+                    "state": "open",
+                    "service": "https-alt"
+                }
+            },
+            "udp": {
+                "123": {
+                    "state": "open",
+                    "service": "ntp"
+                }
+            }
+        },
+        "ICMP": "ICMP is blocked or filtered"
+    },
+    "accept_port": "22, 443"
 }

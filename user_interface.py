@@ -58,7 +58,7 @@ def select_profile():
         # Hiển thị các tùy chọn báo cáo
         print("- REPORT")
         if profile_data.get("internal_result") != None:
-            print("  3. Generate Partial Report (Internal)")
+            print(f"  3. Generate Partial Report (Internal)")
         if profile_data.get("external_result") != None:
             print("  4. Generate Partial Report (External)")
         if profile_data.get("internal_result") != None and profile_data.get("external_result") != None:
@@ -68,24 +68,40 @@ def select_profile():
         action = input("Chọn hành động: ")
 
         if action == '1':
-            profile_data["internal_result"] = scan_network("internal", profile_name)
+            target = str(input("enter External IP: "))
+    
+            profile_data["internal_result"] = scan_network(target,"internal")
             print("Scan internal hoàn tất.")
+            
+            # In kết quả quét ra terminal
+            print("Kết quả quét internal:")
+            print(json.dumps(profile_data["internal_result"], indent=4))
+            
             # Ghi lại profile_data vào profile.json
             with open(profile_path, 'w') as f:
                 json.dump(profile_data, f, indent=4)
-                print(f"Kết quả đã được ghi vào file: {profile_path}")
+            print(f"Kết quả đã được ghi vào file: {profile_path}")
 
         elif action == '2':
-            profile_data["external_result"] = scan_network("external", profile_name)
+            default_ip = '192.168.1.17'
+            target = input("enter External IP (default is 192.168.1.17): ") or default_ip
+            profile_data["external_result"] = scan_network(target, "external")
             print("Scan external hoàn tất.")
+            
+            # In kết quả quét ra terminal
+            print("Kết quả quét external:")
+            print(json.dumps(profile_data["external_result"], indent=4))
+            
             # Ghi lại profile_data vào profile.json
             with open(profile_path, 'w') as f:
                 json.dump(profile_data, f, indent=4)
-                print(f"Kết quả đã được ghi vào file: {profile_path}")
+            print(f"Kết quả đã được ghi vào file: {profile_path}")
+
 
         elif action == '3':
             
-            print("INTERNAL REPORT")
+            print(f"INTERNAL REPORT {profile_name}{profile_data.get("internal_result")}")
+             
         elif action == '4':
             
             print("EXTERNAL REPORT")
@@ -99,24 +115,21 @@ def select_profile():
   
 
 
-
-    
-
 def create_profile_menu():
     profile_name = input("Nhập tên profile: ")
     create_profile(profile_name)
 
-def scan_or_report_menu(profile_name, scan_side):
+# def scan_or_report_menu(profile_name, scan_side):
 
     
 
-    # Thực hiện kiểm tra dữ liệu và quét
-    if scan_side == 1:
-        scan_side = "Internal"
-    if scan_side == 2:
-        scan_side = "External"
-    scan_side = "error"
+#     # Thực hiện kiểm tra dữ liệu và quét
+#     if scan_side == 1:
+#         scan_side = "Internal"
+#     if scan_side == 2:
+#         scan_side = "External"
+#     scan_side = "error"
 
-    print(f"------{profile_name}----------------------------------SCANNING {scan_side}------------------------------------------") 
-    print(f"Đang xử lý profile: {profile_name} ") 
-    # (Thêm logic cho việc quét mạng và tạo báo cáo tại đây)
+#     print(f"------{profile_name}----------------------------------SCANNING {scan_side}------------------------------------------") 
+#     print(f"Đang xử lý profile: {profile_name} ") 
+#     # (Thêm logic cho việc quét mạng và tạo báo cáo tại đây)
