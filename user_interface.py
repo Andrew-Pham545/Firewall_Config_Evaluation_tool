@@ -68,10 +68,11 @@ def select_profile():
         action = input("Chọn hành động: ")
 
         if action == '1':
-            target = str(input("enter External IP: "))
+            default_ip_internal = '10.10.10.15'
+            target = input("enter internal IP (default is 10.10.10.15): ") or  default_ip_internal
     
             profile_data["internal_result"] = scan_network(target,"internal")
-            print("Scan internal hoàn tất.")
+            print("\nScan internal hoàn tất.")
             
             # In kết quả quét ra terminal
             print("Kết quả quét internal:")
@@ -83,10 +84,10 @@ def select_profile():
             print(f"Kết quả đã được ghi vào file: {profile_path}")
 
         elif action == '2':
-            default_ip = '192.168.1.17'
-            target = input("enter External IP (default is 192.168.1.17): ") or default_ip
+            default_ip_external = '192.168.1.17'
+            target = input("enter External IP (default is 192.168.1.17): ") or default_ip_external
             profile_data["external_result"] = scan_network(target, "external")
-            print("Scan external hoàn tất.")
+            print("\nScan external hoàn tất.")
             
             # In kết quả quét ra terminal
             print("Kết quả quét external:")
