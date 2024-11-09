@@ -1,7 +1,7 @@
 import os
 from profile_manager import load_profile_names, create_profile, load_profile_data
 from scanner import scan_network
-from report_generator import generate_report
+from report_generator import *
 import utils
 import json
 
@@ -100,16 +100,23 @@ def select_profile():
 
 
         elif action == '3':
-            
-            print(f"INTERNAL REPORT {profile_name}{profile_data.get("internal_result")}")
-             
+            print("Báo cáo Scan Nội Bộ:")
+            report = generate_report(profile_data)
+            print(report)
+            save_report_to_pdf(report, profile_data.get('name', 'profile'))
+
         elif action == '4':
-            
-            print("EXTERNAL REPORT")
+            print("Báo cáo Scan Ngoài:")
+            report = generate_report(profile_data)
+            print(report)
+            save_report_to_pdf(report, profile_data.get('name', 'profile'))
+
         elif action == '5':
-            print("FULL REPORT")
-        else:
-            print("Lựa chọn không hợp lệ.")
+            print("Báo cáo Toàn Bộ:")
+            report = generate_report(profile_data)
+            print(report)
+            save_report_to_pdf(report, profile_data.get('name', 'profile'))
+
         action = None
         
 
@@ -120,17 +127,3 @@ def create_profile_menu():
     profile_name = input("Nhập tên profile: ")
     create_profile(profile_name)
 
-# def scan_or_report_menu(profile_name, scan_side):
-
-    
-
-#     # Thực hiện kiểm tra dữ liệu và quét
-#     if scan_side == 1:
-#         scan_side = "Internal"
-#     if scan_side == 2:
-#         scan_side = "External"
-#     scan_side = "error"
-
-#     print(f"------{profile_name}----------------------------------SCANNING {scan_side}------------------------------------------") 
-#     print(f"Đang xử lý profile: {profile_name} ") 
-#     # (Thêm logic cho việc quét mạng và tạo báo cáo tại đây)

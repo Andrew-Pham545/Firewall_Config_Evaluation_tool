@@ -1,30 +1,87 @@
-from fpdf import FPDF
 import os
+from fpdf import *
+import utils
 
-def generate_report(profile_name):
-    profile_path = os.path.join("profiles", profile_name)
-    internal_results_file = os.path.join(profile_path, "internal_results.json")
-    external_results_file = os.path.join(profile_path, "external_results.json")
+# Hàm tạo báo cáo văn bản từ dữ liệu profile
+def generate_report(profile_data):
+    internal_result = profile_data.get('internal_result', {})
+    external_result = profile_data.get('external_result', {})
     
-    # Đọc kết quả từ file JSON
-    with open(internal_results_file, 'r') as f:
-        internal_results = f.read()
+    report = f"============= Firewall Report =============\n"
+    report += f"Profile Name: {profile_data.get('name', 'Not defined')}\n"
+    report += f"=============================================\n"
     
-    with open(external_results_file, 'r') as f:
-        external_results = f.read()
+    # Báo cáo về Internal Scan
+    report += "\n--- Internal Scan Results ---\n"
+    if internal_result:
+        report += "ICMP: " + internal_result.get('ICMP', 'No ICMP results') + "\n"
+        
+        report += "\nPorts:\n"
+        if 'Ports' in internal_result:
+            if internal_result['Ports']:
+                for port, details in internal_result['Ports'].items():
+                    report += f"- {port}: {details}\n"
+            else:
+                report += "No open ports.\n"
+        else:
+            report += "No port information.\n"
+    else:
+        report += "No internal scan results.\n"
 
-    # Tạo file PDF
+    # Báo cáo về External Scan
+    report += "\n--- External Scan Results ---\n"
+    if external_result:
+        report += "ICMP: " + external_result.get('ICMP', 'No ICMP results') + "\n"
+        
+        report += "\nPorts (TCP):\n"
+        if 'Ports' in external_result and 'tcp' in external_result['Ports']:
+            for port, details in external_result['Ports']['tcp'].items():
+                report += f"- {port}: {details['state']} ({details['service']})\n"
+        else:
+            report += "No TCP port information.\n"
+        
+        report += "\nPorts (UDP):\n"
+        if 'Ports' in external_result and 'udp' in external_result['Ports']:
+            for port, details in external_result['Ports']['udp'].items():
+                report += f"- {port}: {details['state']} ({details['service']})\n"
+        else:
+            report += "No UDP port information.\n"
+    else:
+        report += "No external scan results.\n"
+
+    return report
+
+# Hàm lưu báo cáo vào file PDF với đường dẫn tùy chỉnh
+def save_report_to_pdf(report, profile_name):
+    # Tạo đối tượng PDF mới
     pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
+    pdf.set_auto_page_break(auto=True, margin=15)
     
-    pdf.cell(200, 10, txt="Báo cáo quét mạng", ln=True, align='C')
-    pdf.cell(200, 10, txt="Kết quả quét nội bộ: ", ln=True)
-    pdf.multi_cell(0, 10, txt=internal_results)
-    pdf.cell(200, 10, txt="Kết quả quét bên ngoài: ", ln=True)
-    pdf.multi_cell(0, 10, txt=external_results)
+    pdf.set_left_margin(20)
+    pdf.set_right_margin(20)
+    pdf.set_top_margin(20)
+    
+    pdf.add_page()
 
-    pdf_file_path = os.path.join(profile_path, "report.pdf")
-    pdf.output(pdf_file_path)
+    pdf.set_font("Arial", size=12)
 
-    print(f"Báo cáo đã được tạo: {pdf_file_path}")
+    # Tiêu đề báo cáo
+    pdf.set_font("Arial", style='B', size=14)
+    pdf.cell(0, 10, 'FIREWALL REPORT', ln=True, align='C')
+    pdf.ln(10)
+
+    pdf.set_font("Arial", size=12)
+
+    # In từng dòng báo cáo
+    lines = report.split('\n')
+    for line in lines:
+        pdf.multi_cell(0, 10, line)
+
+
+
+    # Đường dẫn đầy đủ đến file PDF
+    report_filename = os.path.join(utils.PROFILES_DIR, profile_name, f"{profile_name}_firewall_report.pdf")
+    
+    # Lưu file PDF
+    pdf.output(report_filename)
+    print(f"Report has been saved to: {report_filename}")
