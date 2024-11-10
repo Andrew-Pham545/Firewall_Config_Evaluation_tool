@@ -74,9 +74,9 @@ def select_profile():
             profile_data["internal_result"] = scan_network(target,"internal")
             print("\nScan internal hoàn tất.")
             
-            # In kết quả quét ra terminal
-            print("Kết quả quét internal:")
-            print(json.dumps(profile_data["internal_result"], indent=4))
+            # # In kết quả quét ra terminal
+            # print("Kết quả quét internal:")
+            # print(json.dumps(profile_data["internal_result"], indent=4))
             
             # Ghi lại profile_data vào profile.json
             with open(profile_path, 'w') as f:

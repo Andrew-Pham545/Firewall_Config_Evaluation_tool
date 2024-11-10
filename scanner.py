@@ -12,7 +12,10 @@ def scan_network(target, side):
     tcp_scan = "-sV --script vulners --script-args mincvss=8 --top-ports 1000"
     internal_network_discovery = '-sn'
     
-    scan_result= {}
+    lite_tcp_scan = '-sS -sV --script vulners --script-args mincvss=8 --top-ports 100'
+    lite_udp_scan = '-sU --top-ports 100'
+    
+    scan_results= {}
     
     
     
@@ -20,12 +23,12 @@ def scan_network(target, side):
         
         # show và cho user chọn interface dùng để scan
         show_interface()
-        scan_interface= input("\nChoose an interface to scan(default is eth5): ") or "eth5"
+        scan_interface= input("\nChoose an interface to scan(default is eth3): ") or "eth3"
         # Thêm interface vào lệnh nmap nếu có
         interface_arg = f"-e {scan_interface}" 
         
         #khởi tạo dictionary
-        scan_results = {}
+        # scan_results = {}
         tcp_port_number = 0
         tcp_port_service = ""
         udp_port_number = 0
@@ -39,7 +42,6 @@ def scan_network(target, side):
        # Quét TCP
         print (f"\nScanning TCP.....")
         nm.scan(target, arguments=f"{interface_arg} {tcp_scan} -T 5")
-        
         print("\n=========Scanning Detail (TCP)=========\n")
         if 'tcp' in nm[target]:
             scan_results["tcp"] = {}
@@ -124,7 +126,7 @@ def scan_network(target, side):
               * {scan_results["icmp"]} (ICMP packet to the external ip)
               * {f"there are vulnerability ({vulner_number}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
               ''')
-        scan_result["summary"] = f'''\n=========General scan report========= 
+        scan_results["summary"] = f'''\n=========General scan report========= 
               * The external firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
               * {tcp_port_service} {udp_port_service} are listening in the external ip
               * {scan_results["icmp"]} (ICMP packet to the external ip)
@@ -141,12 +143,12 @@ def scan_network(target, side):
         
         # show và cho user chọn interface dùng để scan
         show_interface()
-        scan_interface= input("\nChoose an interface to scan(default is eth4): ") or "eth4"
+        scan_interface= input("\nChoose an interface to scan(default is eth2): ") or "eth2"
         # Thêm interface vào lệnh nmap nếu có
         interface_arg = f"-e {scan_interface}" 
         
         #khởi tạo biến
-        scan_result = {}
+        scan_results = {"have something in it"}
         target_range = target + "/24"
         
         
@@ -155,11 +157,20 @@ def scan_network(target, side):
         nm.scan(target_range, arguments=f'{internal_network_discovery} -T 5')
         print("\n=========Scanning Detail (network discovery)=========")
         print(f'{len(nm.all_hosts())} host found')
-        # for host in nm.all_hosts():
-        #     host_info = nm[host]
+        scan_results["host_number"] = f'{len(nm.all_hosts())}'
+        for host in nm.all_hosts():
+            print(f'this is host: {host}')
+            print(f'this is nm[host]: {nm[host]}')
         
-        print (f"\nScanning internal firewall.....")
-        # nm.scan(target_range, arguments=f'{internal_network_discovery} -T 5')
+        #quét firewall
+        # print (f"\nScanning internal firewall (TCP).....")
+        # nm.scan(target, arguments=f'{tcp_scan} -T 5')
+        
+        # print(f'this is nm[target]: {nm[target]}')
+        # if "tcp" in nm[target]:
+        #     print("have tcp in the scan")
+        # print("\n=========Scanning Detail of Internal firewall (TCP)=========")
+        
         # print("\n=========Scanning Detail (network discovery)=========")
         
         
