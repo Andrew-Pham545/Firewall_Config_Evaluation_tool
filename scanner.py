@@ -42,6 +42,7 @@ def scan_network(target, side):
        # Quét TCP
         print (f"\nScanning TCP.....")
         nm.scan(target, arguments=f"{interface_arg} {tcp_scan} -T 5")
+        # print(f'this is nm[target]: {nm[target]}')
         print("\n=========Scanning Detail (TCP)=========\n")
         if 'tcp' in nm[target]:
             scan_results["tcp"] = {}
@@ -75,6 +76,8 @@ def scan_network(target, side):
                     "service": f'{port_info.get('name', 'unknown')} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})',
                     "vulner": f'{vulnerability}'
                 }
+        
+                
                 
             
         print (f"\nScanning UDP.....")
@@ -93,6 +96,8 @@ def scan_network(target, side):
                     "state": port_info['state'],
                     "service": port_info.get('name', 'unknown')
                 }
+        
+            
 
         print (f"\nScanning ICMP.....")
         # Quét với lệnh -sP (Ping Scan)
@@ -119,6 +124,7 @@ def scan_network(target, side):
         # tcp_port_numbers = len(scan_results["tcp"]) if "tcp" in scan_results and len(scan_results["tcp"]) != 0 else 0
         # udp_port_numbers = len(scan_results["udp"])
             
+        
         
         print(f'''\n=========General scan report========= 
               * The external firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
@@ -148,30 +154,144 @@ def scan_network(target, side):
         interface_arg = f"-e {scan_interface}" 
         
         #khởi tạo biến
-        scan_results = {"have something in it"}
+        scan_results = {}
         target_range = target + "/24"
         
         
         #quét network dícovery
         print (f"\nScanning for host.....")
-        nm.scan(target_range, arguments=f'{internal_network_discovery} -T 5')
+        nm.scan(target_range, arguments=f'{interface_arg} {internal_network_discovery} -T 5')
         print("\n=========Scanning Detail (network discovery)=========")
         print(f'{len(nm.all_hosts())} host found')
-        scan_results["host_number"] = f'{len(nm.all_hosts())}'
         for host in nm.all_hosts():
-            print(f'this is host: {host}')
-            print(f'this is nm[host]: {nm[host]}')
+            # print(f'this is vendor name: {next(iter(nm[host]["vendor"].values()))}')
+            # vendor_name = next(iter(nm[host]))
+            
+            print(f'{nm[host]["addresses"]["ipv4"]}: {nm[host]["addresses"]["mac"]} ({next(iter(nm[host]["vendor"].values()))})')
+            
+            # print(f'this is nm[host]: {nm[host]}')
+            # scan_results["hosts"] = {}
+            
+        scan_results["host_number"] = f'{len(nm.all_hosts())}'
         
-        #quét firewall
-        # print (f"\nScanning internal firewall (TCP).....")
-        # nm.scan(target, arguments=f'{tcp_scan} -T 5')
+        
+    # quét firewall (TCP)
+        print (f"\nScanning internal firewall (TCP).....")
+        
+        #khai biến
+        scan_results[f"firewall"] = {}
+        scan_results[f"firewall"]["ip"] = target
+        nm.scan(target, arguments=f"{interface_arg} {tcp_scan} -T 5")
+        print("\n=========Scanning Internal Firewall (TCP)=========\n")
+        # print(f'this is nm[target]: {nm[target]}')
+        if 'tcp' in nm[target]:
+            scan_results["firewall"]["tcp"] = {}
+            for port in nm[target]['tcp']:
+                port_info = nm[target]['tcp'][port]
+                tcp_port_number += 1
+                tcp_port_service += f"{port_info.get("name","unknow")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')}), "
+                
+                print(f"Port: {port} ({port_info["state"]})")
+                print(f'''   Service: 
+                      {port_info.get("name", "unknown")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})''')
+                # print(f"this is port info: {port_info}")
+                
+                # In ra thông tin về các lỗ hổng từ script vulners (nếu có)
+                if 'script' in port_info:
+                    vulnerabilities = port_info['script']
+                    if vulnerabilities:
+                        print(f"   Vulnerabilities: ")
+                        for vuln_name, vuln_description in vulnerabilities.items() :
+                            if vuln_name == "fingerprint-strings":
+                                break
+                            vulner_number += 1
+                            print(f"   - {vuln_name}: {vuln_description}")
+                            vulnerability += f"{vuln_name}: {vuln_description}\n"
+                    else:
+                        print("   Vulnerabilities: No vulnerabilities found.")
+                else:
+                    print("   Vulnerabilities: No vulners data available.")
+                scan_results["firewall"]["tcp"][port] = {
+                    "state": port_info['state'],
+                    "service": f'{port_info.get('name', 'unknown')} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})',
+                    "vulner": f'{vulnerability}'
+                }
+        else:
+            print("no tcp port open")
+            scan_results["firewall"]["tcp"] = False
+                
+            
+        print (f"\nScanning UDP.....")
+        nm.scan(target, arguments=f"{interface_arg} {udp_scan} -T 5")
+
+        print("\n=========Scanning Internal Firewall (UDP)=========\n")
+        if 'udp' in nm[target]:
+            scan_results["firewall"]["udp"] = {}
+            for port in nm[target]['udp']:
+                port_info = nm[target]['udp'][port]
+                udp_port_number += 1
+                udp_port_service += f"{port_info.get("name","unknow")}, "
+                print(f"Port {port} ({port_info["state"]}):")
+                print(f"   Service: {port_info.get("name", "unknown")}\n")
+                scan_results["firewall"]["udp"][port] = {
+                    "state": port_info['state'],
+                    "service": port_info.get('name', 'unknown')
+                }
+        else:
+            print("no udp port open")
+            scan_results["firewall"]["udp"] = False
+
+        print (f"\nScanning ICMP.....")
+        # Quét với lệnh -sP (Ping Scan)
+        scan_results["firewall"]["icmp"] = {}
+        nm.scan(target, arguments=f"{interface_arg} {icmp_scan} -T 5")
+        icmp_result = nm.scanstats()
+        print("\n=========Scanning Detail (ICMP)=========")
+        if icmp_result["uphosts"] == "0":
+            print("ICMP is blocked or filtered")
+            scan_results["firewall"]["icmp"] = "ICMP is blocked or filtered"
+            
+        if icmp_result["uphosts"] == "1":
+            print("ICMP is open")
+            scan_results["firewall"]["icmp"] = "ICMP is open"
+            
+            
+            
+        if scan_results["firewall"]["tcp"] == False and scan_results["firewall"]["udp"] == False:
+            print(f'''\n=========General scan report========= 
+              * The internal firewall have no tcp and udp port open
+              * Admin GUI not accessible from the internal LAN 
+              * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
+              * There are no vulnerability in term of service from the internal side of the firewall
+              ''')
+            scan_results["firewall"]["summary"] = f'''\n=========General scan report========= 
+              * The internal firewall have no tcp and udp port open
+              * Admin GUI not accessible from the internal LAN 
+              * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
+              * There are no vulnerability in term of service from the internal side of the firewall
+              '''
+        else:
+            print(f'''\n=========General scan report========= 
+                * The internal firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
+                * {tcp_port_service} {udp_port_service} are listening in the internal ip
+                * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
+                * {f"there are vulnerability ({vulner_number}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
+                ''')
+            scan_results["firewall"]["summary"] = f'''\n=========General scan report========= 
+                * The internal firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
+                * {tcp_port_service} {udp_port_service} are listening in the external ip
+                * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
+                * {f"there are vulnerability ({vulner_number}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
+                '''
         
         # print(f'this is nm[target]: {nm[target]}')
         # if "tcp" in nm[target]:
         #     print("have tcp in the scan")
         # print("\n=========Scanning Detail of Internal firewall (TCP)=========")
         
-        # print("\n=========Scanning Detail (network discovery)=========")
+        
+        
+        
         
         
         
