@@ -2,29 +2,25 @@
     "name": "test1",
     "internal_result": {},
     "external_result": {
-        "Ports": {
-            "tcp": {
-                "80": {
-                    "state": "open",
-                    "service": "http"
-                },
-                "1194": {
-                    "state": "open",
-                    "service": "openvpn"
-                },
-                "8443": {
-                    "state": "open",
-                    "service": "https-alt"
-                }
+        "tcp": {
+            "80": {
+                "state": "open",
+                "service": "http (Apache httpd 2.4.58)",
+                "vulner": "vulners: \n  cpe:/a:apache:http_server:2.4.58: \n    \tCVE-2024-38476\t9.8\thttps://vulners.com/cve/CVE-2024-38476\n    \tCVE-2024-38474\t9.8\thttps://vulners.com/cve/CVE-2024-38474\n    \tA5425A79-9D81-513A-9CC5-549D6321897C\t9.8\thttps://vulners.com/githubexploit/A5425A79-9D81-513A-9CC5-549D6321897C\t*EXPLOIT*\n    \tCVE-2024-38475\t9.1\thttps://vulners.com/cve/CVE-2024-38475\n    \t0486EBEE-F207-570A-9AD8-33269E72220A\t9.1\thttps://vulners.com/githubexploit/0486EBEE-F207-570A-9AD8-33269E72220A\t*EXPLOIT*\n    \tB0A9E5E8-7CCC-5984-9922-A89F11D6BF38\t8.2\thttps://vulners.com/githubexploit/B0A9E5E8-7CCC-5984-9922-A89F11D6BF38\t*EXPLOIT*\n    \tCVE-2024-38473\t8.1\thttps://vulners.com/cve/CVE-2024-38473\n    \t249A954E-0189-5182-AE95-31C866A057E1\t8.1\thttps://vulners.com/githubexploit/249A954E-0189-5182-AE95-31C866A057E1\t*EXPLOIT*\n    \t23079A70-8B37-56D2-9D37-F638EBF7F8B5\t8.1\thttps://vulners.com/githubexploit/23079A70-8B37-56D2-9D37-F638EBF7F8B5\t*EXPLOIT*\nhttp-server-header: Apache/2.4.58 (Ubuntu)\n"
             },
-            "udp": {
-                "123": {
-                    "state": "open",
-                    "service": "ntp"
-                }
+            "8443": {
+                "state": "open",
+                "service": "https-alt (OPNsense )",
+                "vulner": "vulners: \n  cpe:/a:apache:http_server:2.4.58: \n    \tCVE-2024-38476\t9.8\thttps://vulners.com/cve/CVE-2024-38476\n    \tCVE-2024-38474\t9.8\thttps://vulners.com/cve/CVE-2024-38474\n    \tA5425A79-9D81-513A-9CC5-549D6321897C\t9.8\thttps://vulners.com/githubexploit/A5425A79-9D81-513A-9CC5-549D6321897C\t*EXPLOIT*\n    \tCVE-2024-38475\t9.1\thttps://vulners.com/cve/CVE-2024-38475\n    \t0486EBEE-F207-570A-9AD8-33269E72220A\t9.1\thttps://vulners.com/githubexploit/0486EBEE-F207-570A-9AD8-33269E72220A\t*EXPLOIT*\n    \tB0A9E5E8-7CCC-5984-9922-A89F11D6BF38\t8.2\thttps://vulners.com/githubexploit/B0A9E5E8-7CCC-5984-9922-A89F11D6BF38\t*EXPLOIT*\n    \tCVE-2024-38473\t8.1\thttps://vulners.com/cve/CVE-2024-38473\n    \t249A954E-0189-5182-AE95-31C866A057E1\t8.1\thttps://vulners.com/githubexploit/249A954E-0189-5182-AE95-31C866A057E1\t*EXPLOIT*\n    \t23079A70-8B37-56D2-9D37-F638EBF7F8B5\t8.1\thttps://vulners.com/githubexploit/23079A70-8B37-56D2-9D37-F638EBF7F8B5\t*EXPLOIT*\nhttp-server-header: Apache/2.4.58 (Ubuntu)\nhttp-server-header: OPNsense\n"
             }
         },
-        "ICMP": "ICMP is blocked or filtered"
+        "udp": {
+            "123": {
+                "state": "open",
+                "service": "ntp"
+            }
+        },
+        "icmp": "ICMP is blocked or filtered"
     },
     "accept_port": "22, 443"
 }
