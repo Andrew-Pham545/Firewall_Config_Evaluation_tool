@@ -156,6 +156,12 @@ def scan_network(target, side):
         #khởi tạo biến
         scan_results = {}
         target_range = target + "/24"
+        tcp_port_number = 0
+        tcp_port_service = ""
+        udp_port_number = 0
+        udp_port_service = ""
+        vulner_number = 0
+        vulnerability = ""
         
         
         #quét network dícovery
@@ -164,10 +170,11 @@ def scan_network(target, side):
         print("\n=========Scanning Detail (network discovery)=========")
         print(f'{len(nm.all_hosts())} host found')
         for host in nm.all_hosts():
-            # print(f'this is vendor name: {next(iter(nm[host]["vendor"].values()))}')
-            # vendor_name = next(iter(nm[host]))
+            vendor_name = next(iter(nm[host]["vendor"].values()), None) if "vendor" in nm[host] and nm[host]["vendor"] else "Unknown"
+            print(f'This is vendor name: {vendor_name}')
             
-            print(f'{nm[host]["addresses"]["ipv4"]}: {nm[host]["addresses"]["mac"]} ({next(iter(nm[host]["vendor"].values()))})')
+            print(f'{nm[host]["addresses"]["ipv4"]}: {nm[host]["addresses"]["mac"]} ()')
+            #{next(iter(nm[host]["vendor"].values()))}
             
             # print(f'this is nm[host]: {nm[host]}')
             # scan_results["hosts"] = {}
@@ -199,7 +206,7 @@ def scan_network(target, side):
                 # In ra thông tin về các lỗ hổng từ script vulners (nếu có)
                 if 'script' in port_info:
                     vulnerabilities = port_info['script']
-                    if vulnerabilities:
+                    if vulnerabilities: 
                         print(f"   Vulnerabilities: ")
                         for vuln_name, vuln_description in vulnerabilities.items() :
                             if vuln_name == "fingerprint-strings":

@@ -100,16 +100,16 @@ def select_profile():
 
 
         elif action == '3':
-            print("Báo cáo Scan Nội Bộ:")
+            print("Báo cáo Scan Nội Bộ:") 
             report = generate_report(profile_data)
             print(report)
             save_report_to_pdf(report, profile_data.get('name', 'profile'))
-
+    
         elif action == '4':
             print("Báo cáo Scan Ngoài:")
             report = generate_report(profile_data)
             print(report)
-            save_report_to_pdf(report, profile_data.get('name', 'profile'))
+            save_report_to_pdf(report, profile_data.get('name', 'profile')) 
 
         elif action == '5':
             print("Báo cáo Toàn Bộ:")
