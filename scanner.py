@@ -6,14 +6,14 @@ def scan_network(target, side):
     nm = nmap.PortScanner()
     
     #các loại scan
-    udp_scan  = "-sU --top-ports 1000"  # Quét TCP và UDP tất cả các cổng
-    # criteria_7_11_12_and_version_detection = "-sV -sS -sU  --script vulners --script-args mincvss=7 -p T:0-10000,U:0-10000"  # Quét TCP và UDP tất cả các cổng
-    icmp_scan = "-sS -PE --disable-arp-ping"  #ICMP check 
+    udp_scan  = "-sU --top-ports 1000"  
     tcp_scan = "-sV --script vulners --script-args mincvss=8 --top-ports 1000"
-    internal_network_discovery = '-sn'
-    
     lite_tcp_scan = '-sS -sV --script vulners --script-args mincvss=8 --top-ports 100'
     lite_udp_scan = '-sU --top-ports 100'
+    icmp_scan = "-sS -PE --disable-arp-ping"  
+    internal_network_discovery = '-sn'
+    
+    
     
     scan_results= {}
     
@@ -42,7 +42,7 @@ def scan_network(target, side):
        # Quét TCP
         print (f"\nScanning TCP.....")
         nm.scan(target, arguments=f"{interface_arg} {tcp_scan} -T 5")
-        # print(f'this is nm[target]: {nm[target]}')
+        
         print("\n=========Scanning Detail (TCP)=========\n")
         if 'tcp' in nm[target]:
             scan_results["tcp"] = {}
@@ -162,25 +162,22 @@ def scan_network(target, side):
         udp_port_service = ""
         vulner_number = 0
         vulnerability = ""
-
+        
+        
         
         #quét network dícovery
+        scan_results[f"host_discovery"] = {}
         print (f"\nScanning for host.....")
         nm.scan(target_range, arguments=f'{interface_arg} {internal_network_discovery} -T 5')
         print("\n=========Scanning Detail (network discovery)=========")
         print(f'{len(nm.all_hosts())} host found')
         for host in nm.all_hosts():
             vendor_name = next(iter(nm[host]["vendor"].values()), None) if "vendor" in nm[host] and nm[host]["vendor"] else "Unknown"
-            print(f'This is vendor name: {vendor_name}')
             
-            print(f'{nm[host]["addresses"]["ipv4"]}: {nm[host]["addresses"]["mac"]} ()')
-
-            #{next(iter(nm[host]["vendor"].values()))}
+            print(f'{nm[host]["addresses"]["ipv4"]} | {nm[host]["addresses"]["mac"]} ({vendor_name})')
+            scan_results["host_discovery"][host] = f'{nm[host]["addresses"]["ipv4"]} | {nm[host]["addresses"]["mac"]} ({vendor_name})'
             
-            # print(f'this is nm[host]: {nm[host]}')
-            # scan_results["hosts"] = {}
-            
-        scan_results["host_number"] = f'{len(nm.all_hosts())}'
+        scan_results["host_discovery"]["host_number"] = f'{len(nm.all_hosts())}'
         
         
     # quét firewall (TCP)
@@ -189,7 +186,7 @@ def scan_network(target, side):
         #khai biến
         scan_results[f"firewall"] = {}
         scan_results[f"firewall"]["ip"] = target
-        nm.scan(target, arguments=f"{interface_arg} {tcp_scan} -T 5")
+        nm.scan(target, arguments=f"{interface_arg} {lite_tcp_scan} -T 5")
         print("\n=========Scanning Internal Firewall (TCP)=========\n")
         # print(f'this is nm[target]: {nm[target]}')
         if 'tcp' in nm[target]:
@@ -200,8 +197,7 @@ def scan_network(target, side):
                 tcp_port_service += f"{port_info.get("name","unknow")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')}), "
                 
                 print(f"Port: {port} ({port_info["state"]})")
-                print(f'''   Service: 
-                      {port_info.get("name", "unknown")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})''')
+                print(f'''   Service: {port_info.get("name", "unknown")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})''')
                 # print(f"this is port info: {port_info}")
                 
                 # In ra thông tin về các lỗ hổng từ script vulners (nếu có)
@@ -210,9 +206,11 @@ def scan_network(target, side):
                     if vulnerabilities: 
                         print(f"   Vulnerabilities: ")
                         for vuln_name, vuln_description in vulnerabilities.items() :
-                            if vuln_name == "fingerprint-strings":
-                                break
                             vulner_number += 1
+                            if vuln_name == "fingerprint-strings":
+                                print(f"   - {vuln_name}: fingerprint-strings")
+                                vulnerability += f"{vuln_name}: fingerprint-strings\n"                                
+                                break
                             print(f"   - {vuln_name}: {vuln_description}")
                             vulnerability += f"{vuln_name}: {vuln_description}\n"
                     else:
@@ -230,7 +228,7 @@ def scan_network(target, side):
                 
             
         print (f"\nScanning UDP.....")
-        nm.scan(target, arguments=f"{interface_arg} {udp_scan} -T 5")
+        nm.scan(target, arguments=f"{interface_arg} {lite_udp_scan} -T 5")
 
         print("\n=========Scanning Internal Firewall (UDP)=========\n")
         if 'udp' in nm[target]:
@@ -290,80 +288,13 @@ def scan_network(target, side):
                 * {tcp_port_service} {udp_port_service} are listening in the external ip
                 * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
                 * {f"there are vulnerability ({vulner_number}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
-                '''
-        
-        # print(f'this is nm[target]: {nm[target]}')
-        # if "tcp" in nm[target]:
-        #     print("have tcp in the scan")
-        # print("\n=========Scanning Detail of Internal firewall (TCP)=========")
-        
-        
-        
-        
-        
-        
-        
-        
-        #     # Quét TCP UDP
-        # print (f"\nTiến hành scan TCP UDP.....")
-        # nm.scan(target, arguments=f"{interface_arg} {internal_network_discovery} -T 5")
-        # for host in nm.all_hosts():
-        #     #khởi tạo dictionary
-        #     scan_results["Host"] = {}
-            
-        #     print("\n=========Scanning result=========")
-        #     if 'tcp' in nm[host]:
-        #         scan_results["Ports"]["tcp"] = {}
-        #         print("\nTCP\n")
-        #         for port in nm[host]['tcp']:
-        #             port_info = nm[host]['tcp'][port]
-        #             print(f"Port: {port} ({port_info["state"]}):")
-        #             print(f"   Service: {port_info.get("name", "unknown")}\n")
-        #             scan_results["Ports"]["tcp"][port] = {
-        #                 "state": port_info['state'],
-        #                 "service": port_info.get('name', 'unknown')
-        #             }
-                    
-                
-
-        #     if 'udp' in nm[host]:
-        #         print("\nUDP\n")
-        #         scan_results["Ports"]["udp"] = {}
-        #         for port in nm[host]['udp']:
-        #             port_info = nm[host]['udp'][port]
-        #             print(f"Port {port} ({port_info["state"]}):")
-        #             print(f"   Service: {port_info.get("name", "unknown")}\n")
-        #             scan_results["Ports"]["udp"][port] = {
-        #                 "state": port_info['state'],
-        #                 "service": port_info.get('name', 'unknown')
-        #             }
-
-        # # Quét với lệnh -sP (Ping Scan)
-        # scan_results["ICMP"] = {}
-        # nm.scan(target, arguments=f"{interface_arg} {icmp_scan} -T 5")
-        # print("ICMP")
-        # # print (f"this is scanstat: {nm.scanstats()}")
-        # # print (f"this is all host: {nm.all_hosts()}")
-        
-        
-        # icmp_result = nm.scanstats()
-        
-        # if icmp_result["uphosts"] == "0":
-        #     print("ICMP is blocked or filtered")
-        #     scan_results["ICMP"] = "ICMP is blocked or filtered"
-            
-        # if icmp_result["uphosts"] == "1":
-        #     print("ICMP is open")
-        #     scan_results["ICMP"] = "ICMP is open"
-     
-
-    
+                '''    
     return scan_results  # Trả về kết quả dưới dạng JSON
 
 
 def show_interface():
-    # Sử dụng subprocess để thực hiện lệnh nmap
-    command = ["nmap", "--iflist"]  # -sn chỉ ping scan
+    
+    command = ["nmap", "--iflist"]  
     result = subprocess.run(command, capture_output=True, text=True)
     
     # Biểu thức regex để tìm DEV và IP
