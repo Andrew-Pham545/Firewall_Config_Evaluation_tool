@@ -156,7 +156,12 @@ def scan_network(target, side):
         #khởi tạo biến
         scan_results = {}
         target_range = target + "/24"
-        
+        tcp_port_number = 0
+        tcp_port_service = ""
+        udp_port_number = 0
+        udp_port_service = ""
+        vulner_number = 0
+        vulnerability = ""
         
         #quét network dícovery
         print (f"\nScanning for host.....")
@@ -167,7 +172,7 @@ def scan_network(target, side):
             # print(f'this is vendor name: {next(iter(nm[host]["vendor"].values()))}')
             # vendor_name = next(iter(nm[host]))
             
-            print(f'{nm[host]["addresses"]["ipv4"]}: {nm[host]["addresses"]["mac"]} ({next(iter(nm[host]["vendor"].values()))})')
+            print(f'{nm[host]["addresses"]["ipv4"]}: {nm[host]["addresses"]["mac"]} ()')
             
             # print(f'this is nm[host]: {nm[host]}')
             # scan_results["hosts"] = {}
