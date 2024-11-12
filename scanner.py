@@ -162,7 +162,7 @@ def scan_network(target, side):
         udp_port_service = ""
         vulner_number = 0
         vulnerability = ""
-        
+
         
         #quét network dícovery
         print (f"\nScanning for host.....")
@@ -174,6 +174,7 @@ def scan_network(target, side):
             print(f'This is vendor name: {vendor_name}')
             
             print(f'{nm[host]["addresses"]["ipv4"]}: {nm[host]["addresses"]["mac"]} ()')
+
             #{next(iter(nm[host]["vendor"].values()))}
             
             # print(f'this is nm[host]: {nm[host]}')
