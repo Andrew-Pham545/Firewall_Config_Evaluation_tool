@@ -1,6 +1,8 @@
 import nmap
 import subprocess
 import re
+import google.generativeai as genai
+
 
 def scan_network(target, side):
     nm = nmap.PortScanner()
@@ -52,9 +54,8 @@ def scan_network(target, side):
                 tcp_port_service += f"{port_info.get("name","unknow")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')}), "
                 
                 print(f"Port: {port} ({port_info["state"]})")
-                print(f'''   Service: 
-                      {port_info.get("name", "unknown")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})''')
-                # print(f"this is port info: {port_info}")
+                print(f'''   Service: {port_info.get("name", "unknown")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})''')
+                
                 
                 # In ra thông tin về các lỗ hổng từ script vulners (nếu có)
                 if 'script' in port_info:
@@ -124,6 +125,11 @@ def scan_network(target, side):
         # tcp_port_numbers = len(scan_results["tcp"]) if "tcp" in scan_results and len(scan_results["tcp"]) != 0 else 0
         # udp_port_numbers = len(scan_results["udp"])
             
+        print (f"\nAI evaluation (only for reference purpose)")
+        #vứt logic gửi AI vào
+        print("\n=========Scanning Detail (ICMP)=========")
+        # print sumary của Ai
+        # add summary của ai vào 
         
         
         print(f'''\n=========General scan report========= 
