@@ -4,6 +4,7 @@ from scanner import scan_network
 from report_generator import *
 import utils
 import json
+import ai_evaluation
 
 def main_menu():
     while True:
@@ -87,7 +88,7 @@ def select_profile():
             default_ip_external = '192.168.1.17'
             target = input("enter External IP (default is 192.168.1.17): ") or default_ip_external
             profile_data["external_result"] = scan_network(target, "external")
-            print("\nScan external hoàn tất.")
+            print("\n=======================FINISH EXTERNAL SCAN=======================")
             
             # In kết quả quét ra terminal
             print("Kết quả quét external:")
@@ -102,10 +103,9 @@ def select_profile():
         elif action == '3':
             print("Báo cáo Scan Nội Bộ:")
             report = generate_report(profile_data,3)
-
             print(report)
             save_report_to_pdf(report, profile_data.get('name', 'profile'))
-    
+            
         elif action == '4':
             print("Báo cáo Scan Ngoài:")
             report = generate_report(profile_data,4)
@@ -114,7 +114,10 @@ def select_profile():
 
         elif action == '5':
             print("Báo cáo Toàn Bộ:")
-            report = generate_report(profile_data,5)
+            
+            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data)
+            # print(f'This is AI message: {profile_data} ==================== {ai_evaluation_message}')
+            report = generate_report(profile_data,5, ai_message= ai_evaluation_message )
             print(report)
             save_report_to_pdf(report, profile_data.get('name', 'profile'))
 

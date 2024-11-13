@@ -2,7 +2,7 @@ import nmap
 import subprocess
 import re
 import google.generativeai as genai
-
+import ai_evaluation
 
 def scan_network(target, side):
     nm = nmap.PortScanner()
@@ -230,7 +230,7 @@ def scan_network(target, side):
                 }
         else:
             print("no tcp port open")
-            scan_results["firewall"]["tcp"] = False
+            scan_results["firewall"]["tcp"] = 0
                 
             
         print (f"\nScanning UDP.....")
@@ -251,7 +251,7 @@ def scan_network(target, side):
                 }
         else:
             print("no udp port open")
-            scan_results["firewall"]["udp"] = False
+            scan_results["firewall"]["udp"] = 0
 
         print (f"\nScanning ICMP.....")
         # Quét với lệnh -sP (Ping Scan)
@@ -269,7 +269,7 @@ def scan_network(target, side):
             
             
             
-        if scan_results["firewall"]["tcp"] == False and scan_results["firewall"]["udp"] == False:
+        if scan_results["firewall"]["tcp"] == 0 and scan_results["firewall"]["udp"] == 0:
             print(f'''\n=========General scan report========= 
               * The internal firewall have no tcp and udp port open
               * Admin GUI not accessible from the internal LAN 

@@ -3,7 +3,7 @@ from fpdf import *
 import utils
 
 # Hàm tạo báo cáo văn bản từ dữ liệu profile
-def generate_report(profile_data, choice):
+def generate_report(profile_data, choice, ai_message = ''):
     internal_result = profile_data.get("internal_result", {})
     external_result = profile_data.get("external_result", {})
     # Hằng
@@ -34,7 +34,7 @@ def generate_report(profile_data, choice):
             report += "Ports (TCP):\n"
 
             ports_tcp = profile_data.get(IR,ND).get(FI,ND).get("tcp",ND)
-            if len(ports_tcp) > 0:
+            if ports_tcp > 0:
                 for port_number, info in ports_tcp.items():
                     report += f"Port {port_number}:\n"
                     for key, value in info.items():
@@ -47,7 +47,7 @@ def generate_report(profile_data, choice):
             report += "Ports (UDP):\n"
 
             ports_udp = profile_data.get(IR,ND).get(FI,ND).get("udp",ND)
-            if len(ports_udp) > 0:
+            if ports_udp > 0:
                 for port_number, info in ports_udp.items():
                     report += f"Port {port_number}:\n"
                     for key, value in info.items():
@@ -66,17 +66,15 @@ def generate_report(profile_data, choice):
         
         if external_result and (profile_data.get("external_result") != "this is just a string for testing"):
             
-            # Host Numbers
-            report += f"Host Numbers: {profile_data.get(ER,ND).get("host_number",ND)}\n"
-
             # ICMP
-            report += f"ICMP:\n {profile_data.get(ER,ND).get(FI,ND).get("icmp",ND)}"
+            report += f"ICMP:\n {profile_data.get(ER,ND).get("icmp",ND)}"
 
             # Ports TCP
             report += "\n"
             report += "Ports (TCP):\n"
 
-            ports_tcp = profile_data.get(ER,ND).get(FI,ND).get("tcp",ND)
+            ports_tcp = profile_data.get(ER,ND).get("tcp",ND)
+            print(f'this is ports_tcp: {ports_tcp}')
             if len(ports_tcp) > 0:
                 for port_number, info in ports_tcp.items():
                     report += f"Port {port_number}:\n"
@@ -89,7 +87,7 @@ def generate_report(profile_data, choice):
             report += "\n"
             report += "Ports (UDP):\n"
 
-            ports_udp = profile_data.get(ER,ND).get(FI,ND).get("udp",ND)
+            ports_udp = profile_data.get(ER,ND).get("udp",ND)
             if len(ports_udp) > 0:
                 for port_number, info in ports_udp.items():
                     report += f"Port {port_number}:\n"
@@ -99,6 +97,12 @@ def generate_report(profile_data, choice):
                 report += "No TCP port information.\n"
         else:
             report += "No external scan results.\n"
+            
+    if choice == 5:
+        report += f'\nthis is ai evaluation: {ai_message}'
+        print(f'this is ai evaluation: {ai_message}')
+
+    
 
     return report
 
