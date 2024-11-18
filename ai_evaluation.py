@@ -8,28 +8,28 @@ genai.configure(api_key=key.API_KEY)
 def evaluate_scan_result(scan_results):
     # Define a prompt to guide Gemini in explaining results to non-technical users
     prompt = f"""
-    Imagine you are a cybersecurity expert. Please evaluate the following firewall configuration data and explain it as if you were teaching someone without technical knowledge. Make the explanation clear, straightforward, and easy to follow. Avoid technical jargon and use relatable examples where possible.
+   
+   Bạn là 1 chuyên gia bảo mật mạng. Tôi dùng sơ đồ mạng như thế này (tôi scan sơ đồ mạng bằng Nmap). Bạn có thể đánh giá sơ đồ mạng của tôi được không. Bạn hãy in theo cấu trúc này bằng tiếng Anh và không in đậm.
 
-    Evaluation Structure:
+   1. Evaluate Firewall Configuration:
+   - Đánh giá một cách tổng quan nhất bằng 3-4 câu.
+   
+   2. Risks of Firewall Configuration:
+   - Những cổng đang mở có những lỗ hổng gì và sẽ bị tấn công theo kiểu gì? Đồng thời cung cấp các CVE về nó (nếu không có CVE thì không cần ghi, nếu có vẫn cứ ghi). Không cần giải thích.
 
-    1. Internal Firewall Setup:
-       - Describe what the internal firewall is doing in simple terms, such as "allowing" or "blocking" types of connections.
-       - Explain why these settings might be used to protect the network inside the organization.
+   3. Solutions:
+   - Hãy cho những biện pháp phù hợp nằm trong phạm vi cấu hình Firewall (không IDS, IPS) dựa theo những CVE đã cung cấp.
 
-    2. External Firewall Setup:
-       - Summarize the external firewall's role, focusing on which services or applications are accessible to the outside world.
-       - Describe how this setup helps in keeping certain parts of the network secure.
-
-    3. Vulnerabilities:
-       - For each open service or application, mention any risks found.
-       - Explain the risks in simple terms, such as "this could allow unauthorized access" or "this could expose sensitive data."
-
-    4. Recommendations:
-       - Provide clear, simple recommendations that focus on making firewall settings more secure.
-       - Suggest specific changes to firewall rules that would be easy to understand, like "close access to this service from outside" or "only allow trusted users to access."
-
-    5. Summary:
-       - Give a final overview of the firewall’s strengths and any urgent areas for improvement.
+   Các ý trên được viết theo cấu trúc như sau:
+   1. .....
+   - ...
+   - ...
+   2. ....
+   - ...
+   - ...
+   3. ....
+   - ...
+   - ...
 
     Firewall Scan Results:
     {scan_results}

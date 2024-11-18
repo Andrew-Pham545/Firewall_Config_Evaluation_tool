@@ -2,39 +2,39 @@ import os
 from fpdf import *
 import utils
 
-# Hàm tạo báo cáo văn bản từ dữ liệu profile
 def generate_report(profile_data, choice, ai_message = ''):
     internal_result = profile_data.get("internal_result", {})
     external_result = profile_data.get("external_result", {})
-    # Hằng
+    
+    # Cons
     IR = "internal_result"
     ER = "external_result"
     ND = "Not defined!"
     FI = "firewall"
 
     
-    report = f"Profile Name:\n{profile_data.get("name",ND)}\n"
+    report = f"Profile Name: {profile_data.get("name",ND)}\n"
 
 
-    # Báo cáo về Internal Scan
+    # Internal Scan
     if ((choice == 3) or (choice == 5)):
         report += "\n"
-        report += "--------- Internal Scan Results ---------\n"
+        report += "Internal Scan Results\n"
         
         if internal_result and (profile_data.get("internal_result") != "this is just a string for testing"):
 
             # Host Numbers
-            report += f"Host Numbers: {profile_data.get(IR,ND).get("host_number",ND)}\n"
+            report += f"Number of Devices Found: {profile_data.get(IR,ND).get("host_discovery",ND).get("host_number",ND)}\n"
 
             # ICMP
-            report += f"ICMP:\n {profile_data.get(IR,ND).get(FI,ND).get("icmp",ND)}"
+            report += f"ICMP:\n{profile_data.get(IR,ND).get(FI,ND).get("icmp",ND)}"
 
             # Ports TCP
             report += "\n"
             report += "Ports (TCP):\n"
 
             ports_tcp = profile_data.get(IR,ND).get(FI,ND).get("tcp",ND)
-            if ports_tcp > 0:
+            if len(ports_tcp) > 0:
                 for port_number, info in ports_tcp.items():
                     report += f"Port {port_number}:\n"
                     for key, value in info.items():
@@ -47,7 +47,7 @@ def generate_report(profile_data, choice, ai_message = ''):
             report += "Ports (UDP):\n"
 
             ports_udp = profile_data.get(IR,ND).get(FI,ND).get("udp",ND)
-            if ports_udp > 0:
+            if len(ports_udp) > 0:
                 for port_number, info in ports_udp.items():
                     report += f"Port {port_number}:\n"
                     for key, value in info.items():
@@ -59,15 +59,15 @@ def generate_report(profile_data, choice, ai_message = ''):
             report += "No internal scan results.\n"
 
 
-    # Báo cáo về External Scan
+    # External Scan
     if ((choice == 4) or (choice == 5)):
         report += "\n"
-        report += "--------- External Scan Results ---------\n"
+        report += "External Scan Results\n"
         
         if external_result and (profile_data.get("external_result") != "this is just a string for testing"):
             
             # ICMP
-            report += f"ICMP:\n {profile_data.get(ER,ND).get("icmp",ND)}"
+            report += f"ICMP:\n{profile_data.get(ER,ND).get("icmp",ND)}"
 
             # Ports TCP
             report += "\n"
@@ -98,17 +98,15 @@ def generate_report(profile_data, choice, ai_message = ''):
         else:
             report += "No external scan results.\n"
             
-    if choice == 5:
-        report += f'\nthis is ai evaluation: {ai_message}'
-        print(f'this is ai evaluation: {ai_message}')
-
+            
+    report += f'\nThis is ai evaluation:\n {ai_message}'
+    print(f'This is ai evaluation:\n {ai_message}')
     
 
     return report
 
-# Hàm lưu báo cáo vào file PDF với đường dẫn tùy chỉnh
 def save_report_to_pdf(report, profile_name):
-    # Tạo đối tượng PDF mới
+
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.set_left_margin(20)
@@ -116,51 +114,90 @@ def save_report_to_pdf(report, profile_name):
     pdf.set_top_margin(20)
     
     pdf.add_page()
+    pdf.add_font("Arial", "", "Arial.ttf", uni = True)
     pdf.set_font("Arial", size=12)
 
-    # Tiêu đề báo cáo
+    # Title
     pdf.set_font("Arial", style='B', size=40)
-    pdf.cell(0, 10, "FIREWALL REPORT", ln=True, align="C")
-    pdf.ln(10)
+    pdf.multi_cell(0, 10, "_____________________")
+    pdf.set_font("Arial", style='B', size=50)
+    pdf.multi_cell(0, 40, "FIREWALL")
+    pdf.multi_cell(0, 10, "REPORT")
+    # pdf.ln(10)
 
-    # In từng dòng báo cáo
-    check = 0
+    # Print report
+    # check = 0
+    ai_check = 0
     lines = report.split('\n')
     for line in lines:
-        if ((line == "--------- Internal Scan Results ---------") or (line == "--------- External Scan Results ---------")):
+
+        # Internal Scan
+        if (line == "Internal Scan Results"):
             pdf.add_page()
-            pdf.set_font("Arial", style='B', size=20)
-            pdf.multi_cell(0, 15, line, align = "C")
+            pdf.set_font("Arial", style='B', size=40)
+            pdf.multi_cell(0, 10, "_____________________")
+            pdf.set_font("Arial", style='B', size=35)
+            pdf.multi_cell(0, 30, "Internal Firewall")
+            pdf.multi_cell(0, 10, "Scan Result")
+            pdf.multi_cell(0, 15, "")
 
-        # Profile Name viết khác tí
-        elif (line == "Profile Name:"):
-            pdf.set_font("Arial", style='B', size=20)
-            pdf.multi_cell(0, 10, line)
-            check = 1
-        elif (check == 1):
-            check = 0
-            pdf.set_font("Arial", size=20)
-            pdf.multi_cell(0, 10, line)
+        # External Scan
+        elif (line == "External Scan Results"):
+            pdf.add_page()
+            pdf.set_font("Arial", style='B', size=40)
+            pdf.multi_cell(0, 10, "_____________________")
+            pdf.set_font("Arial", style='B', size=35)
+            pdf.multi_cell(0, 30, "External Firewall")
+            pdf.multi_cell(0, 10, "Scan Result")
+            pdf.multi_cell(0, 15, "")
 
+        # Profile Name
+        elif ("Profile Name:" in line):
+            pdf.set_font("Arial", style='B', size=20)
+            pdf.multi_cell(0, 30, line)
+        #     check = 1
+        # elif (check == 1):
+        #     check = 0
+        #     pdf.set_font("Arial", size=20)
+        #     pdf.multi_cell(0, 10, line)
+
+
+        elif ("Number of Devices Found:" in line):
+            pdf.set_font("Arial", style='B', size=15)
+            pdf.multi_cell(0, 10, line)
 
         elif ((line == "ICMP:") or (line == "Ports:") or (line == "Ports (TCP):") or (line  == "Ports (UDP):")):
             pdf.set_font("Arial", style='B', size=15)
             pdf.multi_cell(0, 10, line)
 
 
-        elif (("Port" in line)):
+        elif (("Port" in line) and (ai_check == 0)):
             pdf.set_font("Arial", style='B', size=13)
             pdf.multi_cell(0, 10, line)
 
+        # AI Evaluation
+        elif ("This is ai evaluation:" in line):
+            pdf.add_page()
+            pdf.set_font("Arial", style='B', size=40)
+            pdf.multi_cell(0, 10, "_____________________")
+            pdf.set_font("Arial", style='B', size=35)
+            pdf.multi_cell(0, 30, "AI")
+            pdf.multi_cell(0, 10, "Evaluation")
+            pdf.multi_cell(0, 15, "")
+            ai_check = 1
+
+        elif (("1. Evaluate Firewall Configuration:" in line) or ("2. Risks of Firewall Configuration:" in line) or ("3. Solutions:" in line)):
+            pdf.set_font("Arial", style='B', size=15)
+            pdf.multi_cell(0, 10, line)
 
         else:
             pdf.set_font("Arial", size=13)
             pdf.multi_cell(0, 10, line)
 
 
-    # Đường dẫn đầy đủ đến file PDF
+    # File PDF Path
     report_filename = os.path.join(utils.PROFILES_DIR, profile_name, f"{profile_name}_firewall_report.pdf")
     
-    # Lưu file PDF
+    # Save file PDF
     pdf.output(report_filename)
     print(f"Report has been saved to: {report_filename}")

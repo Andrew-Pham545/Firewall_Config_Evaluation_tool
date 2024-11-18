@@ -102,13 +102,17 @@ def select_profile():
 
         elif action == '3':
             print("Báo cáo Scan Nội Bộ:")
-            report = generate_report(profile_data,3)
+
+            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data)
+            report = generate_report(profile_data, 3, ai_message= ai_evaluation_message)
             print(report)
             save_report_to_pdf(report, profile_data.get('name', 'profile'))
             
         elif action == '4':
             print("Báo cáo Scan Ngoài:")
-            report = generate_report(profile_data,4)
+
+            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data)
+            report = generate_report(profile_data, 4, ai_message= ai_evaluation_message)
             print(report)
             save_report_to_pdf(report, profile_data.get('name', 'profile')) 
 
@@ -116,8 +120,7 @@ def select_profile():
             print("Báo cáo Toàn Bộ:")
             
             ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data)
-            # print(f'This is AI message: {profile_data} ==================== {ai_evaluation_message}')
-            report = generate_report(profile_data,5, ai_message= ai_evaluation_message )
+            report = generate_report(profile_data, 5, ai_message= ai_evaluation_message)
             print(report)
             save_report_to_pdf(report, profile_data.get('name', 'profile'))
 
