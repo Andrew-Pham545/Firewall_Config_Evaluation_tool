@@ -9,11 +9,11 @@ import ai_evaluation
 def main_menu():
     while True:
         print("\n--- Network Scanner Tool ---")
-        print("1. Chọn Profile")
-        print("2. Tạo Profile Mới")
-        print("3. Thoát")
+        print("1. Choose Profile")
+        print("2. Create new Profile")
+        print("3. Exit tool")
 
-        choice = input("Chọn một tùy chọn: ")
+        choice = input("Choose an option: ")
 
         if choice == '1':
             select_profile()
@@ -22,7 +22,7 @@ def main_menu():
         elif choice == '3':
             break
         else:
-            print("Lựa chọn không hợp lệ. Vui lòng thử lại.")
+            print("Choice not ")
 
 def select_profile():
     profile_names = load_profile_names()
@@ -73,7 +73,8 @@ def select_profile():
             target = input("enter internal IP (default is 10.10.10.15): ") or  default_ip_internal
     
             profile_data["internal_result"] = scan_network(target,"internal")
-            print("\nScan internal hoàn tất.")
+            print("\n=======================FINISH INTERNAL SCAN=======================")
+
             
             # # In kết quả quét ra terminal
             # print("Kết quả quét internal:")
@@ -90,9 +91,9 @@ def select_profile():
             profile_data["external_result"] = scan_network(target, "external")
             print("\n=======================FINISH EXTERNAL SCAN=======================")
             
-            # In kết quả quét ra terminal
-            print("Kết quả quét external:")
-            print(json.dumps(profile_data["external_result"], indent=4))
+            # # In kết quả quét ra terminal
+            # print("Kết quả quét external:")
+            # print(json.dumps(profile_data["external_result"], indent=4))
             
             # Ghi lại profile_data vào profile.json
             with open(profile_path, 'w') as f:
