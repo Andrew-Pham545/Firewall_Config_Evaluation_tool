@@ -15,26 +15,39 @@ def generate_report(profile_data, choice, ai_message = ''):
     
     report = f"Profile Name: {profile_data.get("name",ND)}\n"
 
-
     # Internal Scan
     if ((choice == 3) or (choice == 5)):
         report += "\n"
         report += "Internal Scan Results\n"
         
-        if internal_result and (profile_data.get("internal_result") != "this is just a string for testing"):
+        if internal_result and (profile_data.get(IR) != "this is just a string for testing"):
 
+            # Scanning Time
+            report += f"Scanning Time: {profile_data.get(IR,ND).get("time_of_scan",ND)}\n"
+
+            # IP Internal
+            report += f"Internal Firewall IP: {profile_data.get(IR,ND).get("firewall",ND).get("ip",ND)}\n"
+            
             # Host Numbers
+            report += "\n"
             report += f"Number of Devices Found: {profile_data.get(IR,ND).get("host_discovery",ND).get("host_number",ND)}\n"
 
+            host_dis = profile_data.get(IR,ND).get("host_discovery",ND)
+            if (len(host_dis) > 0):
+                for host_addr, host_info in host_dis.items():
+                    if (host_addr != "host_number"):
+                        report += f"{host_addr}: {host_info}\n"
+
             # ICMP
-            report += f"ICMP:\n{profile_data.get(IR,ND).get(FI,ND).get("icmp",ND)}"
+            report += "\n"
+            report += f"ICMP:\n{profile_data.get(IR,ND).get(FI,ND).get("icmp",ND)}\n"
 
             # Ports TCP
             report += "\n"
             report += "Ports (TCP):\n"
 
             ports_tcp = profile_data.get(IR,ND).get(FI,ND).get("tcp",ND)
-            if len(ports_tcp) > 0:
+            if (len(ports_tcp) > 0):
                 for port_number, info in ports_tcp.items():
                     report += f"Port {port_number}:\n"
                     for key, value in info.items():
@@ -66,8 +79,15 @@ def generate_report(profile_data, choice, ai_message = ''):
         
         if external_result and (profile_data.get("external_result") != "this is just a string for testing"):
             
+            # Scanning Time
+            report += f"Scanning Time: {profile_data.get(ER,ND).get("time_of_scan",ND)}\n"
+
+            # IP External
+            report += f"External Firewall IP: {profile_data.get(ER,ND).get("firewall_ip",ND)}\n"
+
             # ICMP
-            report += f"ICMP:\n{profile_data.get(ER,ND).get("icmp",ND)}"
+            report += "\n"
+            report += f"ICMP:\n{profile_data.get(ER,ND).get("icmp",ND)}\n"
 
             # Ports TCP
             report += "\n"
@@ -161,6 +181,13 @@ def save_report_to_pdf(report, profile_name):
         #     pdf.set_font("Arial", size=20)
         #     pdf.multi_cell(0, 10, line)
 
+        elif ("Scanning Time: " in line):
+            pdf.set_font("Arial", style='B', size=13)
+            pdf.multi_cell(0, 10, line)
+
+        elif (("External Firewall IP:" in line) or ("Internal Firewall IP:" in line)):
+            pdf.set_font("Arial", style='B', size=13)
+            pdf.multi_cell(0, 10, line)
 
         elif ("Number of Devices Found:" in line):
             pdf.set_font("Arial", style='B', size=15)

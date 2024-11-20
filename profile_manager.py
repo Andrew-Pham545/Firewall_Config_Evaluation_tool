@@ -31,7 +31,7 @@ def create_profile(profile_name):
         "external_result": None
     }
 
-    with open(os.path.join(profile_path, "profile.json"), 'w') as f:
+    with open(os.path.join(profile_path, "profile.json"), 'w', encoding='utf8') as f:
         json.dump(profile_data, f)
 
     print(f"Profile '{profile_name}' đã được tạo.")
@@ -47,7 +47,7 @@ def load_profile_data(profile_names_para):
         return None
     
     # Mở và load dữ liệu từ file profile.json
-    with open(profile_path, 'r') as f:
+    with open(profile_path, 'r', encoding='utf8') as f:
         profile_data = json.load(f)
     
     return profile_data

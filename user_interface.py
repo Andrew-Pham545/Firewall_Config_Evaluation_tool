@@ -82,7 +82,7 @@ def select_profile():
             print(Fore.CYAN + "\n======================= FINISH INTERNAL SCAN ========================")
             
             # Ghi lại profile_data vào profile.json
-            with open(profile_path, 'w') as f:
+            with open(profile_path, 'w', encoding='utf8') as f:
                 json.dump(profile_data, f, indent=4)
             print(Fore.GREEN + f"Result is written into: {profile_path}")
 
@@ -93,7 +93,7 @@ def select_profile():
             print(Fore.CYAN + "\n======================= FINISH EXTERNAL SCAN ========================")
             
             # Ghi lại profile_data vào profile.json
-            with open(profile_path, 'w') as f:
+            with open(profile_path, 'w', encoding='utf8') as f:
                 json.dump(profile_data, f, indent=4)
             print(Fore.GREEN + f"Result is written into: {profile_path}")
 
