@@ -45,7 +45,7 @@ def select_profile():
         profile_data = load_profile_data(profile_name)
         profile_path = os.path.join(utils.PROFILES_DIR, profile_name, "profile.json")
         # Hiển thị menu của profile
-        print(Fore.CYAN + f"\n============ {profile_data['name']} =============")
+        print(Fore.CYAN + f"\n======================= {profile_data['name']} =======================")
         # print("Choose action:")
         print(Fore.YELLOW + "- SCAN:")
         
@@ -87,7 +87,7 @@ def select_profile():
 
         elif action == '2':
             default_ip_external = '192.168.1.17'
-            target = input(f'\n{Fore.YELLOW + 'Enter internal IP (default is 192.168.1.17):'}{Fore.RESET} ') or default_ip_external
+            target = input(f'\n{Fore.YELLOW + 'Enter external IP (default is 192.168.1.17):'}{Fore.RESET} ') or default_ip_external
             profile_data["external_result"] = scan_network(target, "external")
             print(Fore.CYAN + "\n======================= FINISH EXTERNAL SCAN ========================")
             

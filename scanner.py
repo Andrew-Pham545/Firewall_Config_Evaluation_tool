@@ -127,11 +127,11 @@ def scan_network(target, side):
         
     #general report
         print(f'''\n{Fore.CYAN +'======================= General scan report =======================' + Fore.RESET} 
-              * The external firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
-              * {tcp_port_service} {udp_port_service} are listening in the external ip
-              * {scan_results["icmp"]} (ICMP packet to the external ip)
-              * {f"there are vulnerability ({Fore.RED + vulner_number + Fore.RESET}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
-              ''')
+        * The external firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
+        * {tcp_port_service} {udp_port_service} are listening in the external ip
+        * {scan_results["icmp"]} (ICMP packet to the external ip)
+        * {f"there are vulnerability ({Fore.RED + str(vulner_number) + Fore.RESET}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
+        ''')
         scan_results["summary"] = f'''\n======================= General scan report ======================= 
               * The external firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
               * {tcp_port_service} {udp_port_service} are listening in the external ip
@@ -256,11 +256,11 @@ def scan_network(target, side):
     #general report       
         if scan_results["firewall"]["tcp"] == 0 and scan_results["firewall"]["udp"] == 0:
             print(f'''\n{Fore.CYAN +'======================= General scan report =======================' + Fore.RESET} 
-              * The internal firewall have no tcp and udp port open
-              * Admin GUI not accessible from the internal LAN 
-              * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
-              * There are no vulnerability in term of service from the internal side of the firewall
-              ''')
+        * The internal firewall have no tcp and udp port open
+        * Admin GUI not accessible from the internal LAN 
+        * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
+        * There are no vulnerability in term of service from the internal side of the firewall
+        ''')
             scan_results["firewall"]["summary"] = f'''\n======================= General scan report ======================= 
               * The internal firewall have no tcp and udp port open
               * Admin GUI not accessible from the internal LAN 
@@ -269,10 +269,10 @@ def scan_network(target, side):
               '''
         else:
             print(f'''\n{Fore.CYAN +'======================= General scan report =======================' + Fore.RESET}
-                * The internal firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
-                * {tcp_port_service} {udp_port_service} are listening in the internal ip
-                * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
-                * {f"there are vulnerability ({Fore.RED + str(vulner_number) + Fore.RESET}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
+        * The internal firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
+        * {tcp_port_service} {udp_port_service} are listening in the internal ip
+        * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
+        * {f"there are vulnerability ({Fore.RED + str(vulner_number) + Fore.RESET}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
                 ''')
             scan_results["firewall"]["summary"] = f'''\n======================= General scan report ======================= 
                 * The internal firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
