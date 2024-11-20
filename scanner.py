@@ -68,9 +68,9 @@ def scan_network(target, side):
                         print('   vulnerbility: ', end= '')
                         for vuln_name, vuln_description in vulnerabilities.items() :
                             vulner_number += 1
-                            if "fingerprint-strings" in vuln_name or "fingerprint-strings" in vuln_description:
-                                print(f'{vuln_name}')
-                                vulnerability = vuln_name
+                            if vuln_name == "fingerprint-strings":
+                                print(f"   - {vuln_name}: fingerprint-strings")
+                                vulnerability += f"{vuln_name}: fingerprint-strings\n"                                
                                 break
                             print(f"{vuln_description}")
                             vulnerability += f"{vuln_description}"
@@ -91,6 +91,9 @@ def scan_network(target, side):
                     "vulner": f'{vulnerability}'
                 }                
                 vulnerability = ''
+            else:
+                print("no tcp port open")
+        
         
                 
     # Quét UDP
@@ -109,6 +112,8 @@ def scan_network(target, side):
                     "state": port_info['state'],
                     "service": port_info.get('name', 'unknown')
                 }
+        else:
+            print("no udp port open")
         
             
     # Quét ICMP
@@ -180,12 +185,12 @@ def scan_network(target, side):
         
     # quét firewall (TCP)
         print (f"\nScanning internal firewall (TCP).....")
-        scan_results[f"firewall"] = {}
-        scan_results[f"firewall"]["ip"] = target
         nm.scan(target, arguments=f"{interface_arg} {lite_tcp_scan} -T 5")
         print(Fore.CYAN + '\n======================= Scanning Internal Firewall (TCP) =======================\n')
 
         if 'tcp' in nm[target]:
+            scan_results[f"firewall"] = {}
+            scan_results[f"firewall"]["ip"] = target
             scan_results["firewall"]["tcp"] = {}
             for port in nm[target]['tcp']:
                 port_info = nm[target]['tcp'][port]
@@ -196,27 +201,30 @@ def scan_network(target, side):
                 if 'script' in port_info:
                     vulnerabilities = port_info['script']
                     if vulnerabilities: 
-                        print(f"   Vulnerabilities: ")
+                        
+                        print('   vulnerbility: ', end= '')
                         for vuln_name, vuln_description in vulnerabilities.items() :
                             vulner_number += 1
                             if vuln_name == "fingerprint-strings":
                                 print(f"   - {vuln_name}: fingerprint-strings")
                                 vulnerability += f"{vuln_name}: fingerprint-strings\n"                                
                                 break
-                            print(f"   - {vuln_name}: {vuln_description}")
-                            vulnerability += f"{vuln_name}: {vuln_description}\n"
+                            print(f"{vuln_description}")
+                            vulnerability += f"{vuln_description}"
                     else:
                         print("   Vulnerabilities: No vulnerabilities found.")
+                        vulnerability = 'no vulnerability found'
                 else:
                     print("   Vulnerabilities: No vulners data available.")
+                    vulnerability = 'no vulnerability in vulners database'
+                
+                vulnerability = vulnerability.replace("\t", "\n")
                 scan_results["firewall"]["tcp"][port] = {
                     "state": port_info['state'],
-                    "service": f'{port_info.get('name', 'unknown')} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})',
+                    "service": f'{port_info.get("name", "unknown")} ({port_info.get("product","unknown")} {port_info.get("version","unknown")})',
                     "vulner": f'{vulnerability}'
-                }
-        else:
-            print("no tcp port open")
-            scan_results["firewall"]["tcp"] = 0
+                }                
+                vulnerability = ''
                 
     # quét firewall (UDP)
         print (f"\nScanning UDP.....")
