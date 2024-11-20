@@ -83,7 +83,7 @@ def scan_network(target, side):
                     print("   Vulnerabilities: No vulners data available.")
                     vulnerability = 'no vulnerability in vulners database'
                     
-                vulnerability = vulnerability.replace("\t", "  ")
+                vulnerability = vulnerability.replace("\t", "\n")
 
                 scan_results["tcp"][port] = {
                     "state": port_info['state'],

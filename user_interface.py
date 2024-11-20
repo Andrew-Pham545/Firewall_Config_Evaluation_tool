@@ -26,6 +26,7 @@ def main_menu():
                 create_profile_menu()
             case '3':
                 print(Fore.RED)
+                break
             case _:
                 print(Fore.RED + 'Invalid choice. Please try again.')
                 
@@ -98,7 +99,7 @@ def select_profile():
 
         elif action == '3':
 
-            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data)
+            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data["internal_result"])
             report = generate_report(profile_data, 3, ai_message=ai_evaluation_message)
             # print(Fore.GREEN + report)
             save_report_to_pdf(report, profile_data.get('name', 'profile'))
@@ -107,7 +108,7 @@ def select_profile():
         elif action == '4':
             
 
-            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data)
+            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data["external_result"])
             report = generate_report(profile_data, 4, ai_message=ai_evaluation_message)
             # print(Fore.GREEN + report)
             save_report_to_pdf(report, profile_data.get('name', 'profile')) 
