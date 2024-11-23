@@ -47,26 +47,30 @@ def generate_report(profile_data, choice, ai_message = ''):
             report += "Ports (TCP):\n"
 
             ports_tcp = profile_data.get(IR,ND).get(FI,ND).get("tcp",ND)
-            if (len(ports_tcp) > 0):
-                for port_number, info in ports_tcp.items():
-                    report += f"Port {port_number}:\n"
-                    for key, value in info.items():
-                        report += f"{key}: {value} \n"
-            else:
+            
+            if (ports_tcp == 0):
                 report += "No TCP port information.\n"
+            else:
+                if (len(ports_tcp) > 0):
+                    for port_number, info in ports_tcp.items():
+                        report += f"Port {port_number}:\n"
+                        for key, value in info.items():
+                            report += f"{key}: {value} \n"
+
             
             # Ports UDP
             report += "\n"
             report += "Ports (UDP):\n"
 
             ports_udp = profile_data.get(IR,ND).get(FI,ND).get("udp",ND)
-            if len(ports_udp) > 0:
-                for port_number, info in ports_udp.items():
-                    report += f"Port {port_number}:\n"
-                    for key, value in info.items():
-                        report += f"{key}: {value} \n"
+            if (ports_udp == 0):
+                report += "No UDP port information.\n"
             else:
-                report += "No TCP port information.\n"
+                if len(ports_udp) > 0:
+                    for port_number, info in ports_udp.items():
+                        report += f"Port {port_number}:\n"
+                        for key, value in info.items():
+                            report += f"{key}: {value} \n"
             
         else:
             report += "No internal scan results.\n"
@@ -108,13 +112,14 @@ def generate_report(profile_data, choice, ai_message = ''):
             report += "Ports (UDP):\n"
 
             ports_udp = profile_data.get(ER,ND).get("udp",ND)
-            if len(ports_udp) > 0:
-                for port_number, info in ports_udp.items():
-                    report += f"Port {port_number}:\n"
-                    for key, value in info.items():
-                        report += f"{key}: {value} \n"
+            if (ports_udp == 0):
+                report += "No UDP port information.\n"
             else:
-                report += "No TCP port information.\n"
+                if len(ports_udp) > 0:
+                    for port_number, info in ports_udp.items():
+                        report += f"Port {port_number}:\n"
+                        for key, value in info.items():
+                            report += f"{key}: {value} \n"
         else:
             report += "No external scan results.\n"
             

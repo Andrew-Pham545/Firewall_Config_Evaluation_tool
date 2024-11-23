@@ -10,12 +10,15 @@ def scan_network(target, side):
     nm = nmap.PortScanner()
     
 #các loại scan
-    udp_scan  = "-sU --top-ports 1000"  
-    tcp_scan = "-sV --script vulners --script-args mincvss=8 --top-ports 1000"
+    udp_scan  = "-sU --top-ports 500"  
+    tcp_scan = "-sV --script vulners --script-args mincvss=8 --top-ports 500"
     lite_tcp_scan = '-sS -sV --script vulners --script-args mincvss=8 --top-ports 100'
     lite_udp_scan = '-sU --top-ports 100'
     icmp_scan = "-sS -PE --disable-arp-ping"  
     internal_network_discovery = '-sn'
+    
+    
+    
     
     scan_results= {}
     
@@ -37,6 +40,7 @@ def scan_network(target, side):
         udp_port_service = ""
         vulner_number = 0
         vulnerability = ""
+        scan_results["udp"] = {}
         
     #ip của firewall
         scan_results["firewall_ip"] = target 
@@ -101,7 +105,7 @@ def scan_network(target, side):
         nm.scan(target, arguments=f"{interface_arg} {udp_scan} -T 5")
         print(Fore.CYAN + '\n======================= Scanning Detail (UDP) =======================\n')
         if 'udp' in nm[target]:
-            scan_results["udp"] = {}
+            
             for port in nm[target]['udp']:
                 port_info = nm[target]['udp'][port]
                 udp_port_number += 1
@@ -114,7 +118,7 @@ def scan_network(target, side):
                 }
         else:
             print("no udp port open")
-        
+            scan_results["udp"] = 0
             
     # Quét ICMP
         print (f"\nScanning ICMP.....")
@@ -154,7 +158,6 @@ def scan_network(target, side):
         interface_arg = f"-e {scan_interface}" 
         
     #khởi tạo biến
-        scan_results = {}
         target_range = target + "/24"
         tcp_port_number = 0
         tcp_port_service = ""
@@ -162,7 +165,11 @@ def scan_network(target, side):
         udp_port_service = ""
         vulner_number = 0
         vulnerability = ""
-        
+        scan_results = {}
+        scan_results["firewall"] = {}
+        scan_results[f"firewall"]["ip"] = target
+
+        # scan_results["firewall"] = {}
     #thoi gian bat dau scan
         current_time = time.strftime("%D (%H:%M:%S)")
         scan_results["time_of_scan"] = current_time
@@ -189,7 +196,7 @@ def scan_network(target, side):
         print(Fore.CYAN + '\n======================= Scanning Internal Firewall (TCP) =======================\n')
 
         if 'tcp' in nm[target]:
-            scan_results[f"firewall"] = {}
+            
             scan_results[f"firewall"]["ip"] = target
             scan_results["firewall"]["tcp"] = {}
             for port in nm[target]['tcp']:
@@ -225,6 +232,9 @@ def scan_network(target, side):
                     "vulner": f'{vulnerability}'
                 }                
                 vulnerability = ''
+        else:
+            print("no tcp port open")
+            scan_results["firewall"]["tcp"] = 0
                 
     # quét firewall (UDP)
         print (f"\nScanning UDP.....")
@@ -232,6 +242,7 @@ def scan_network(target, side):
         print(Fore.CYAN + '\n======================= Scanning Internal Firewall (UDP) =======================\n')
 
         if 'udp' in nm[target]:
+            
             scan_results["firewall"]["udp"] = {}
             for port in nm[target]['udp']:
                 port_info = nm[target]['udp'][port]
