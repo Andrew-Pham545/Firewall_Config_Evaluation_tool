@@ -7,7 +7,7 @@ import utils
 import json
 import ai_evaluation
 import manual_criteria
-# Initialize colorama
+
 init(autoreset=True)
 
 def main_menu():

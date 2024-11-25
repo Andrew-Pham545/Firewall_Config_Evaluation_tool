@@ -15,14 +15,14 @@ def firewall_checklist():
     }
     
     for question in checklist.keys():
-        while True:  # Loop until valid input is provided
+        while True:  
             print(f"\nQuestion: {question}")
             answer = input("Score this Criteria (1 - 5): ")
             
-            # Check if the input is valid (numeric and within range)
+            
             if answer.isdigit() and 1 <= int(answer) <= 5:
-                checklist[question] = int(answer)  # Store the valid answer as an integer
-                break  # Exit the loop for this question
+                checklist[question] = int(answer)  
+                break  
             else:
                 print("Invalid input. Please enter a score between 1 and 5.")
     

@@ -15,20 +15,20 @@ def generate_report(profile_data, choice, ai_message = ''):
     
     report = f"Profile Name: {profile_data.get("name",ND)}\n"
 
-    # Internal Scan
+    
     if ((choice == 3) or (choice == 5)):
         report += "\n"
         report += "Internal Scan Results\n"
         
         if internal_result and (profile_data.get(IR) != "this is just a string for testing"):
 
-            # Scanning Time
+    
             report += f"Scanning Time: {profile_data.get(IR,ND).get("time_of_scan",ND)}\n"
 
-            # IP Internal
+    
             report += f"Internal Firewall IP: {profile_data.get(IR,ND).get("firewall",ND).get("ip",ND)}\n"
             
-            # Host Numbers
+    
             report += "\n"
             report += f"Number of Devices Found: {profile_data.get(IR,ND).get("host_discovery",ND).get("host_number",ND)}\n"
 
@@ -38,11 +38,11 @@ def generate_report(profile_data, choice, ai_message = ''):
                     if (host_addr != "host_number"):
                         report += f"{host_addr}: {host_info}\n"
 
-            # ICMP
+    
             report += "\n"
             report += f"ICMP:\n{profile_data.get(IR,ND).get(FI,ND).get("icmp",ND)}\n"
 
-            # Ports TCP
+    
             report += "\n"
             report += "Ports (TCP):\n"
 
@@ -58,7 +58,7 @@ def generate_report(profile_data, choice, ai_message = ''):
                             report += f"{key}: {value} \n"
 
             
-            # Ports UDP
+    
             report += "\n"
             report += "Ports (UDP):\n"
 
@@ -76,24 +76,24 @@ def generate_report(profile_data, choice, ai_message = ''):
             report += "No internal scan results.\n"
 
 
-    # External Scan
+    
     if ((choice == 4) or (choice == 5)):
         report += "\n"
         report += "External Scan Results\n"
         
         if external_result and (profile_data.get("external_result") != "this is just a string for testing"):
             
-            # Scanning Time
+    
             report += f"Scanning Time: {profile_data.get(ER,ND).get("time_of_scan",ND)}\n"
 
-            # IP External
+    
             report += f"External Firewall IP: {profile_data.get(ER,ND).get("firewall_ip",ND)}\n"
 
-            # ICMP
+    
             report += "\n"
             report += f"ICMP:\n{profile_data.get(ER,ND).get("icmp",ND)}\n"
 
-            # Ports TCP
+    
             report += "\n"
             report += "Ports (TCP):\n"
 
@@ -107,7 +107,7 @@ def generate_report(profile_data, choice, ai_message = ''):
             else:
                 report += "No TCP port information.\n"
             
-            # Ports UDP
+    
             report += "\n"
             report += "Ports (UDP):\n"
 
@@ -142,21 +142,21 @@ def save_report_to_pdf(report, profile_name):
     pdf.add_font("Arial", "", "Arial.ttf", uni = True)
     pdf.set_font("Arial", size=12)
 
-    # Title
+    
     pdf.set_font("Arial", style='B', size=40)
     pdf.multi_cell(0, 10, "_____________________")
     pdf.set_font("Arial", style='B', size=50)
     pdf.multi_cell(0, 40, "FIREWALL")
     pdf.multi_cell(0, 10, "REPORT")
-    # pdf.ln(10)
+    
 
-    # Print report
-    # check = 0
+    
+    
     ai_check = 0
     lines = report.split('\n')
     for line in lines:
 
-        # Internal Scan
+    
         if (line == "Internal Scan Results"):
             pdf.add_page()
             pdf.set_font("Arial", style='B', size=40)
@@ -166,7 +166,7 @@ def save_report_to_pdf(report, profile_name):
             pdf.multi_cell(0, 10, "Scan Result")
             pdf.multi_cell(0, 15, "")
 
-        # External Scan
+    
         elif (line == "External Scan Results"):
             pdf.add_page()
             pdf.set_font("Arial", style='B', size=40)
@@ -176,15 +176,11 @@ def save_report_to_pdf(report, profile_name):
             pdf.multi_cell(0, 10, "Scan Result")
             pdf.multi_cell(0, 15, "")
 
-        # Profile Name
+    
         elif ("Profile Name:" in line):
             pdf.set_font("Arial", style='B', size=20)
             pdf.multi_cell(0, 30, line)
-        #     check = 1
-        # elif (check == 1):
-        #     check = 0
-        #     pdf.set_font("Arial", size=20)
-        #     pdf.multi_cell(0, 10, line)
+    
 
         elif ("Scanning Time: " in line):
             pdf.set_font("Arial", style='B', size=13)
@@ -207,7 +203,7 @@ def save_report_to_pdf(report, profile_name):
             pdf.set_font("Arial", style='B', size=13)
             pdf.multi_cell(0, 10, line)
 
-        # AI Evaluation
+    
         elif ("This is ai evaluation:" in line):
             pdf.add_page()
             pdf.set_font("Arial", style='B', size=40)
@@ -227,9 +223,9 @@ def save_report_to_pdf(report, profile_name):
             pdf.multi_cell(0, 10, line)
 
 
-    # File PDF Path
+    
     report_filename = os.path.join(utils.PROFILES_DIR, profile_name, f"{profile_name}_firewall_report.pdf")
     
-    # Save file PDF
+    
     pdf.output(report_filename)
     print(f"Report has been saved to: {report_filename}")

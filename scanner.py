@@ -2,14 +2,14 @@ import nmap
 import subprocess
 import re
 import google.generativeai as genai
-# import ai_evaluation
+
 import time
 from colorama import Fore, init
 
 def scan_network(target, side):
     nm = nmap.PortScanner()
     
-#các loại scan
+
     udp_scan  = "-sU --top-ports 500"  
     tcp_scan = "-sV --script vulners --script-args mincvss=8 --top-ports 500"
     lite_tcp_scan = '-sS -sV --script vulners --script-args mincvss=8 --top-ports 100'
@@ -25,12 +25,12 @@ def scan_network(target, side):
     
     if side == "external":
         
-    # show và cho user chọn interface dùng để scan
+
         show_interface()
         scan_interface= input(f'\n{Fore.YELLOW + 'Choose an interface to scan(default is eth3):'} {Fore.RESET}') or 'eth3'
         interface_arg = f"-e {scan_interface}" 
         
-    #khởi tạo biến
+
         tcp_port_number = 0
         tcp_port_service = ""
         udp_port_number = 0
@@ -39,16 +39,16 @@ def scan_network(target, side):
         vulnerability = ""
         scan_results["udp"] = {}
         
-    #ip của firewall
+
         scan_results["firewall_ip"] = target 
     
-    #thoi gian bat dau scan
+
         current_time = time.strftime("%D (%H:%M:%S)")
         scan_results["time_of_scan"] = current_time
         print(f'\nScan {side} start at: {current_time}')
         
         
-    # Quét TCP
+
         print (f"\nScanning TCP.....")
         nm.scan(target, arguments=f"{interface_arg} {tcp_scan} -T 5")
         print(Fore.CYAN + '\n======================= Scanning Detail (TCP) =======================\n')
@@ -97,7 +97,7 @@ def scan_network(target, side):
         
         
                 
-    # Quét UDP
+
         print (f"\nScanning UDP.....")
         nm.scan(target, arguments=f"{interface_arg} {udp_scan} -T 5")
         print(Fore.CYAN + '\n======================= Scanning Detail (UDP) =======================\n')
@@ -117,7 +117,7 @@ def scan_network(target, side):
             print("no udp port open")
             scan_results["udp"] = 0
             
-    # Quét ICMP
+
         print (f"\nScanning ICMP.....")
         scan_results["icmp"] = {}
         nm.scan(target, arguments=f"{interface_arg} {icmp_scan} -T 5")     
@@ -131,7 +131,7 @@ def scan_network(target, side):
             print("ICMP is open")
             scan_results["icmp"] = "ICMP is open"
         
-    #general report
+
         print(f'''\n{Fore.CYAN +'======================= General scan report =======================' + Fore.RESET} 
         * The external firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
         * {tcp_port_service} {udp_port_service} are listening in the external ip
@@ -144,17 +144,15 @@ def scan_network(target, side):
               * {scan_results["icmp"]} (ICMP packet to the external ip)
               * {f"there are vulnerability ({vulner_number}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
               '''
-        
-# ===============================================================================================================================================================
                 
     if side == "internal":
         
-    # show và cho user chọn interface dùng để scan
+    
         show_interface()
         scan_interface= input(f'\n{Fore.YELLOW + 'Choose an interface to scan(default is eth2):'} {Fore.RESET}') or 'eth2'
         interface_arg = f"-e {scan_interface}" 
         
-    #khởi tạo biến
+    
         target_range = target + "/24"
         tcp_port_number = 0
         tcp_port_service = ""
@@ -166,15 +164,14 @@ def scan_network(target, side):
         scan_results["firewall"] = {}
         scan_results[f"firewall"]["ip"] = target
 
-        # scan_results["firewall"] = {}
-    #thoi gian bat dau scan
+    
         current_time = time.strftime("%D (%H:%M:%S)")
         scan_results["time_of_scan"] = current_time
         print(f'\nScan {side} start at: {current_time}')
 
         
         
-    #quét network dícovery
+    
         scan_results[f"host_discovery"] = {}
         print (f"\nScanning for host.....")
         nm.scan(target_range, arguments=f'{interface_arg} {internal_network_discovery} -T 5')
@@ -187,7 +184,7 @@ def scan_network(target, side):
         scan_results["host_discovery"]["host_number"] = f'{len(nm.all_hosts())}'
         
         
-    # quét firewall (TCP)
+    
         print (f"\nScanning internal firewall (TCP).....")
         nm.scan(target, arguments=f"{interface_arg} {lite_tcp_scan} -T 5")
         print(Fore.CYAN + '\n======================= Scanning Internal Firewall (TCP) =======================\n')
@@ -233,7 +230,7 @@ def scan_network(target, side):
             print("no tcp port open")
             scan_results["firewall"]["tcp"] = 0
                 
-    # quét firewall (UDP)
+    
         print (f"\nScanning UDP.....")
         nm.scan(target, arguments=f"{interface_arg} {lite_udp_scan} -T 5")
         print(Fore.CYAN + '\n======================= Scanning Internal Firewall (UDP) =======================\n')
@@ -255,7 +252,7 @@ def scan_network(target, side):
             print("no udp port open")
             scan_results["firewall"]["udp"] = 0
             
-    # quét firewall (ICMP)
+    
         print (f"\nScanning ICMP.....")
         scan_results["firewall"]["icmp"] = {}
         nm.scan(target, arguments=f"{interface_arg} {icmp_scan} -T 5")
@@ -269,7 +266,7 @@ def scan_network(target, side):
             scan_results["firewall"]["icmp"] = "ICMP is open"
             
 
-    #general report       
+    
         if scan_results["firewall"]["tcp"] == 0 and scan_results["firewall"]["udp"] == 0:
             print(f'''\n{Fore.CYAN +'======================= General scan report =======================' + Fore.RESET} 
         * The internal firewall have no tcp and udp port open
@@ -298,7 +295,7 @@ def scan_network(target, side):
                 '''    
                 
     
-    return scan_results  # Trả về kết quả dưới dạng JSON
+    return scan_results  
 
 
 def show_interface():
@@ -306,16 +303,16 @@ def show_interface():
     command = ["nmap", "--iflist"]  
     result = subprocess.run(command, capture_output=True, text=True)
     
-    # Biểu thức regex để tìm DEV và IP
+    
     pattern = r"(\b\w+\d+\b) \(\w+\) +([\da-fA-F:.]+/\d+)"
 
-    # Tìm tất cả các kết quả khớp với biểu thức regex và loại bỏ trùng lặp
+    
     matches = set(re.findall(pattern, result.stdout))
 
-    # Sắp xếp theo `dev` theo thứ tự tăng dần
+    
     sorted_matches = sorted(matches, key=lambda x: x[0])
 
-    # In danh sách các thiết bị và IP theo thứ tự tăng dần của `dev`
+    
     print(Fore.CYAN + "\n ======================= Your Network Interface List =======================")
     for dev, ip in sorted_matches:
         print(f"Interface {dev}: {ip}")

@@ -2,11 +2,11 @@
 import google.generativeai as genai
 import key
 
-# Configure the API key for Google Gemini
+
 genai.configure(api_key=key.API_KEY)
 
 def evaluate_scan_result(scan_results):
-    # Define a prompt to guide Gemini in explaining results to non-technical users
+
     prompt = f"""
    
    Bạn là 1 chuyên gia bảo mật mạng. Tôi dùng sơ đồ mạng như thế này (tôi scan sơ đồ mạng bằng Nmap). Bạn có thể đánh giá sơ đồ mạng của tôi được không. Bạn hãy in theo cấu trúc này bằng tiếng Anh và không in đậm.
@@ -35,6 +35,6 @@ def evaluate_scan_result(scan_results):
     {scan_results}
     """
 
-    # Generate response from Gemini using provided prompt
+
     response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
     return response.text
