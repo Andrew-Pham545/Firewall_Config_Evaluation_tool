@@ -17,9 +17,6 @@ def scan_network(target, side):
     icmp_scan = "-sS -PE --disable-arp-ping"  
     internal_network_discovery = '-sn'
     
-    
-    
-    
     scan_results= {}
     
     current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")

@@ -6,13 +6,13 @@ from report_generator import *
 import utils
 import json
 import ai_evaluation
-
+import manual_criteria
 # Initialize colorama
 init(autoreset=True)
 
 def main_menu():
     while True:
-        print(Fore.CYAN + "\n--- Network Scanner Tool ---")
+        print(Fore.CYAN + "\n--- Firewall Evaluation ---")
         print(Fore.GREEN + "1. Choose Profile")
         print(Fore.GREEN + "2. Create new Profile")
         print(Fore.RED + "3. Exit tool")
@@ -48,81 +48,79 @@ def select_profile():
         # Hiển thị menu của profile
         print(Fore.CYAN + f"\n======================= {profile_data['name']} =======================")
         # print("Choose action:")
-        print(Fore.YELLOW + "- SCAN:")
+        print(Fore.YELLOW + "- EVALUATION:")
         
-        # Kiểm tra nếu đã có kết quả scan nội bộ
-        if profile_data.get("internal_result"):
-            print(f'  1. Scan internal {Fore.GREEN + '(already scan)'}')
-        else:
-            print("  1. Scan internal")
+        # # Kiểm tra nếu đã có kết quả scan nội bộ
+        # if profile_data.get("internal_result"):
+        #     print(f'  1. Scan internal {Fore.GREEN + '(already scan)'}')
+        # else:
+        #     print("  1. Scan internal")
         
-        # Kiểm tra nếu đã có kết quả scan bên ngoài
-        if profile_data.get("external_result"):
-            print(f'  2. Scan external {Fore.GREEN + '(already scan)'}')
-        else:
-            print( "  2. Scan external")
+        # print( "  1. Criteria 5 + 7 + 11" + Fore.GREEN + ' (already scan)')
+        # print( "  2. Criteria 1 ")
+        # print( "  3. Criteria 2")
+        # print( "  4. Criteria 3")
+        # print( "  5. Criteria 4")
+        # print( "  6. Criteria 6")
+        # print( "  7. Criteria 8")
+        # print( "  8. Criteria 9")
+        # print( "  9. Criteria 10")
+        # print( "  10. Criteria 12")
+        # print( "  11. Criteria 13")
+        # print( "  11. Criteria 13")
+        
+        print('  1. Begin to Eveluate (Auto + Manual)')
+        print('  2. Eveluate a single criteria')
+        
+        
+        
+        
         
         # Hiển thị các tùy chọn báo cáo
         print(Fore.YELLOW + "- REPORT")
-        if profile_data.get("internal_result") != None:
-            print("  3. Generate Partial Report (Internal)")
-        if profile_data.get("external_result") != None:
-            print("  4. Generate Partial Report (External)")
-        if profile_data.get("internal_result") != None and profile_data.get("external_result") != None:
-            print(f'  5. Generate {Fore.GREEN + 'Full Report'}')
+        print(f'  3. Generate {Fore.GREEN + 'Full Report'}')
+
+        # if profile_data.get("internal_result") != None and profile_data.get("external_result") != None:
+        #     print(f'  5. Generate {Fore.GREEN + 'Full Report'}')
 
         # Xử lý lựa chọn hành động của người dùng
         action = input("Choose action: ")
 
         if action == '1':
-            default_ip_internal = '10.10.10.15'
-            target = input(f'\n{Fore.YELLOW + 'Enter internal IP (default is 10.10.10.15):'}{Fore.RESET} ') or default_ip_internal
-    
-            profile_data["internal_result"] = scan_network(target, "internal")
-            print(Fore.CYAN + "\n======================= FINISH INTERNAL SCAN ========================")
-            
-            # Ghi lại profile_data vào profile.json
-            with open(profile_path, 'w', encoding='utf8') as f:
-                json.dump(profile_data, f, indent=4)
-            print(Fore.GREEN + f"Result is written into: {profile_path}")
-
-        elif action == '2':
-            default_ip_external = '192.168.1.17'
-            target = input(f'\n{Fore.YELLOW + 'Enter external IP (default is 192.168.1.17):'}{Fore.RESET} ') or default_ip_external
+            profile_data = manual_criteria.firewall_checklist()
+            target = input(f'\n{Fore.YELLOW + 'Enter the firewall external IP:'} {Fore.RESET} ')
+            profile_data += scan_network(target, "external")
             profile_data["external_result"] = scan_network(target, "external")
-            print(Fore.CYAN + "\n======================= FINISH EXTERNAL SCAN ========================")
+            
+            # print(Fore.CYAN + "\n======================= FINISH EXTERNAL SCAN ========================")
             
             # Ghi lại profile_data vào profile.json
             with open(profile_path, 'w', encoding='utf8') as f:
                 json.dump(profile_data, f, indent=4)
             print(Fore.GREEN + f"Result is written into: {profile_path}")
-
+            
+        elif action == '2':
+            #Eveluate a single criteria   
+            print('do the firewall .... (ghi lý thuyết vào)')
+            profile_data["criteria_1"] = input('do the firewall 1 ')  
+            
+            with open(profile_path, 'w', encoding='utf8') as f:
+                json.dump(profile_data, f, indent=4)
+            print(Fore.GREEN + f"Result is written into: {profile_path}")
+         
         elif action == '3':
-
-            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data["internal_result"])
-            report = generate_report(profile_data, 3, ai_message=ai_evaluation_message)
-            # print(Fore.GREEN + report)
-            save_report_to_pdf(report, profile_data.get('name', 'profile'))
-            print(Fore.CYAN + "======================= Internal scan report is generated =======================")
+            print('criteria 2')   
             
-        elif action == '4':
+            print('do the firewall .... (ghi lý thuyết vào)')
+            profile_data["criteria_2"] = input('do the firewall ')  
             
-
-            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data["external_result"])
-            report = generate_report(profile_data, 4, ai_message=ai_evaluation_message)
-            # print(Fore.GREEN + report)
-            save_report_to_pdf(report, profile_data.get('name', 'profile')) 
-            print(Fore.CYAN + "======================= External scan report is generated =======================")
-        elif action == '5':
-            
-            
-            ai_evaluation_message = ai_evaluation.evaluate_scan_result(profile_data)
-            report = generate_report(profile_data, 5, ai_message=ai_evaluation_message)
-            # print(Fore.GREEN + report)
-            save_report_to_pdf(report, profile_data.get('name', 'profile'))
-            print(Fore.CYAN + "======================= Full scan report is generated =======================")
+            with open(profile_path, 'w', encoding='utf8') as f:
+                json.dump(profile_data, f, indent=4)
+            print(Fore.GREEN + f"Result is written into: {profile_path}")
         action = None
 
+
+            
 def create_profile_menu():
     profile_name = input(f'{Fore.GREEN + 'Enter new profile name:'} {Fore.RESET}')
     create_profile(profile_name)

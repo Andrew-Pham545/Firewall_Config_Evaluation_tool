@@ -27,8 +27,19 @@ def create_profile(profile_name):
 
     profile_data = {
         "name": profile_name,
-        "internal_result": None,
-        "external_result": None
+        "criteria_1" : None,
+        "criteria_2" : None,
+        "criteria_3" : None,
+        "criteria_4" : None,
+        "criteria_5" : None,
+        "criteria_6" : None,
+        "criteria_7" : None,
+        "criteria_8" : None,
+        "criteria_9" : None,
+        "criteria_10" : None,
+        "criteria_11" : None,
+        "criteria_12" : None,
+        "criteria_13" : None
     }
 
     with open(os.path.join(profile_path, "profile.json"), 'w', encoding='utf8') as f:
