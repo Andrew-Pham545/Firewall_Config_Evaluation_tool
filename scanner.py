@@ -1,318 +1,254 @@
 import nmap
 import subprocess
 import re
-import google.generativeai as genai
-
 import time
-from colorama import Fore, init
+from colorama import Fore
 
-def scan_network(target, side):
+def scan_network(target):
     nm = nmap.PortScanner()
-    
 
-    udp_scan  = "-sU --top-ports 500"  
-    tcp_scan = "-sV --script vulners --script-args mincvss=8 --top-ports 500"
-    lite_tcp_scan = '-sS -sV --script vulners --script-args mincvss=8 --top-ports 100'
-    lite_udp_scan = '-sU --top-ports 100'
-    icmp_scan = "-sS -PE --disable-arp-ping"  
-    internal_network_discovery = '-sn'
-    
-    scan_results= {}
-    
+    udp_scan = "-sU --top-ports 500"  # Scan top 500 UDP ports
+    tcp_scan = "-sS --top-ports 500"  # Standard SYN scan for top 500 TCP ports
+    icmp_scan = "-sS -PE --disable-arp-ping"  # ICMP scan
+
+    scan_results = {}
     current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
 
+    show_interface()
+    scan_interface = input(f'\n{Fore.YELLOW + "Choose an interface to scan (default is eth3):"} {Fore.RESET}') or 'eth3'
+    interface_arg = f"-e {scan_interface}"
+
+    tcp_port_number = 0
+    udp_port_number = 0
+    tcp_port_service = ""
+    udp_port_service = ""
+
+    scan_results["udp"] = {}
+    scan_results["firewall_ip"] = target
+    scan_results["time_of_scan"] = current_time
+    print(f'\nScan external started at: {current_time}')
+
+    # TCP Scan
+    print("\nScanning TCP...")
+    nm.scan(target, arguments=f"{interface_arg} {tcp_scan} -T 5")
+    print(Fore.CYAN + '\n======================= Scanning Details (TCP) =======================\n')
+    if 'tcp' in nm[target]:
+        scan_results["tcp"] = {}
+        for port in nm[target]['tcp']:
+            port_info = nm[target]['tcp'][port]
+            tcp_port_number += 1
+            tcp_port_service += f"{port_info.get('name', 'unknown')} ({port_info.get('product', 'unknown')} {port_info.get('version', 'unknown')}), "
+            print(f"Port: {port} ({port_info['state']})")
+            print(f"   Service: {port_info.get('name', 'unknown')} ({port_info.get('product', 'unknown')} {port_info.get('version', 'unknown')})")
+            scan_results["tcp"][port] = {
+                "state": port_info['state'],
+                "service": f"{port_info.get('name', 'unknown')} ({port_info.get('product', 'unknown')} {port_info.get('version', 'unknown')})"
+            }
+    else:
+        print("No TCP ports open.")
+
+    # UDP Scan
+    print("\nScanning UDP...")
+    nm.scan(target, arguments=f"{interface_arg} {udp_scan} -T 5")
+    print(Fore.CYAN + '\n======================= Scanning Details (UDP) =======================\n')
+    if 'udp' in nm[target]:
+        for port in nm[target]['udp']:
+            port_info = nm[target]['udp'][port]
+            udp_port_number += 1
+            udp_port_service += f"{port_info.get('name', 'unknown')}, "
+            print(f"Port: {port} ({port_info['state']})")
+            print(f"   Service: {port_info.get('name', 'unknown')}")
+            scan_results["udp"][port] = {
+                "state": port_info['state'],
+                "service": port_info.get('name', 'unknown')
+            }
+    else:
+        print("No UDP ports open.")
+
+    # ICMP Scan
+    print("\nScanning ICMP...")
+    scan_results["icmp"] = {}
+    nm.scan(target, arguments=f"{interface_arg} {icmp_scan} -T 5")
+    icmp_result = nm.scanstats()
+    print(Fore.CYAN + '\n======================= Scanning Details (ICMP) =======================\n')
+    if icmp_result["uphosts"] == "0":
+        print("ICMP is blocked or filtered")
+        scan_results["icmp"] = "ICMP is blocked or filtered"
+    elif icmp_result["uphosts"] == "1":
+        print("ICMP is open")
+        scan_results["icmp"] = "ICMP is open"
+
+    # Summary
+    print(f'''\n{Fore.CYAN +'======================= General Scan Report =======================' + Fore.RESET} 
+    * External firewall has {tcp_port_number} TCP and {udp_port_number} UDP ports open.
+    * {tcp_port_service} {udp_port_service} are listening on the external IP.
+    * {scan_results["icmp"]} (ICMP packet to the external IP).
+    ''')
+    return scan_results
+
+def scan_tcp_udp(target):
+    show_interface()
+    interface = input(f'\n{Fore.YELLOW + "Choose an interface to scan :"} {Fore.RESET}') 
+    nm = nmap.PortScanner()
+
+    tcp_scan = "-sS --top-ports 500"  # Scan top 500 TCP ports
+    udp_scan = "-sU --top-ports 500"  # Scan top 500 UDP ports
+
+    current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
+
+    print(f"\n{Fore.GREEN}Starting scan on target: {target} at {current_time}{Fore.RESET}")
+    print(f"Using interface: {interface}")
+
+    # Scanning TCP ports
+    print(f"\n{Fore.CYAN}Scanning TCP ports...{Fore.RESET}")
+    nm.scan(target, arguments=f"-e {interface} {tcp_scan} -T 5")
+    if 'tcp' in nm[target]:
+        print(Fore.CYAN + '\n======================= TCP Scan Results =======================\n' + Fore.RESET)
+        for port in nm[target]['tcp']:
+            port_info = nm[target]['tcp'][port]
+            print(f"Port: {port} ({port_info['state']})")
+            print(f"   Service: {port_info.get('name', 'unknown')} ({port_info.get('product', 'unknown')} {port_info.get('version', 'unknown')})")
+    else:
+        print("No TCP ports open.")
+
+    # Scanning UDP ports
+    print(f"\n{Fore.CYAN}Scanning UDP ports...{Fore.RESET}")
+    nm.scan(target, arguments=f"-e {interface} {udp_scan} -T 5")
+    if 'udp' in nm[target]:
+        print(Fore.CYAN + '\n======================= UDP Scan Results =======================\n' + Fore.RESET)
+        for port in nm[target]['udp']:
+            port_info = nm[target]['udp'][port]
+            print(f"Port: {port} ({port_info['state']})")
+            print(f"   Service: {port_info.get('name', 'unknown')}")
+    else:
+        print("No UDP ports open.")
+
+    print(f"\n{Fore.GREEN}Scan complete for {target} at {time.strftime('%d/%m/%Y (%H:%M:%S)')}{Fore.RESET}")
+
+def port_restriction_scan(target):
+    
+    current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
+    
+    """
+    Scan specific ports for both TCP and UDP protocols and report if they are open.
+    """
+    # Danh sách dịch vụ và cổng cần kiểm tra (đơn giản hóa bằng cách liệt kê cổng trực tiếp)
+    port_list = (
+        "53,69,87,111,512-514,515,540,2000,2049,6000-6255,21,22,23,25,37,79,80,"
+        "109-110,119,123,135,137-139,143,161-162,179,389,443,445,514,1080,2001,"
+        "4001,4045,6001,8000,8080,8888"
+    )
+    show_interface()
+    interface = input(f'\n{Fore.YELLOW + "Choose an interface to scan :"} {Fore.RESET}') 
+    nm = nmap.PortScanner()
+    print(f"{Fore.GREEN}Scanning target: {target}{Fore.RESET}")
+    print(f"Checking ports: {port_list}\n")
+
+    # Gộp cả TCP và UDP vào một lệnh nmap
+    nm.scan(target, arguments=f"-e {interface} -p {port_list} -sS -sU -T4")
+
+    print(f"{Fore.CYAN}Scan started at: {time.strftime('%Y-%m-%d %H:%M:%S')}{Fore.RESET}\n")
+    print(f"{Fore.CYAN}======================= Open Ports ======================={Fore.RESET}")
+
+    # Xử lý kết quả cho từng giao thức (TCP và UDP)
+    for proto in nm[target].all_protocols():
+        print(f"\n{Fore.BLUE}Protocol: {proto.upper()}{Fore.RESET}")
+        for port in sorted(nm[target][proto].keys()):
+            if nm[target][proto][port]['state'] == 'open':
+                print(f"Port: {port} - {Fore.GREEN}Open{Fore.RESET}")
+
+    print(f"\n{Fore.GREEN}Scan completed at: {current_time}{Fore.RESET}")
+    
+    
+
+
+def scan_icmp_restrictions(target):
+    """
+    Perform an ICMP scan on the target and return the results.
+    """
+    nm = nmap.PortScanner()
+    icmp_scan = "-PE --disable-arp-ping"  # ICMP scan arguments
+
+    current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
+
+    # Hiển thị danh sách giao diện
+    show_interface()
+    scan_interface = input(f'\n{Fore.YELLOW + "Choose an interface to scan (default is eth3):"} {Fore.RESET}') or 'eth3'
+    interface_arg = f"-e {scan_interface}"
+
+    print(f'\nScan ICMP started at: {current_time}')
+    print("\nScanning ICMP...")
+    nm.scan(target, arguments=f"{interface_arg} {icmp_scan} -T 5")
+    icmp_result = nm.scanstats()
+    print(Fore.CYAN + '\n======================= Scanning Details (ICMP) =======================\n')
+
+    if icmp_result["uphosts"] == "0":
+        print("ICMP is blocked or filtered")
+    elif icmp_result["uphosts"] == "1":
+        print("ICMP is open")
+
+
+def port_restriction_and_icmp_restriction_scan(target):
+    """
+    Scan specific ports for both TCP, UDP protocols, and perform an ICMP scan.
+    """
+    current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
+    port_list = (
+        "53,69,87,111,512-514,515,540,2000,2049,6000-6255,21,22,23,25,37,79,80," 
+        "109-110,119,123,135,137-139,143,161-162,179,389,443,445,514,1080,2001," 
+        "4001,4045,6001,8000,8080,8888"
+    )
+    
+    show_interface()
+    interface = input(f'\n{Fore.YELLOW + "Choose an interface to scan :"} {Fore.RESET}') or 'eth3'
+    nm = nmap.PortScanner()
+    
+    print(f"{Fore.GREEN}Scanning target: {target}{Fore.RESET}")
+    # print(f"Checking ports: {port_list}\n")
+
+    # Gộp cả TCP, UDP và ICMP vào một lệnh nmap
+    nm.scan(target, arguments=f"-e {interface} -p {port_list} -sS -sU -PE --disable-arp-ping -T4")
+
+    print(f"{Fore.CYAN}Scan started at: {time.strftime('%Y-%m-%d %H:%M:%S')}{Fore.RESET}\n")
+    print(f"{Fore.CYAN}======================= Open Ports ======================={Fore.RESET}")
+
+    scan_results = {"target": target, "protocols": {}}
+    
+    # Xử lý kết quả cho từng giao thức (TCP, UDP, và ICMP)
+    for proto in nm[target].all_protocols():
+        print(f"\n{Fore.BLUE}Protocol: {proto.upper()}{Fore.RESET}")
+        scan_results["protocols"][proto] = []
+        for port in sorted(nm[target][proto].keys()):
+            if nm[target][proto][port]['state'] == 'open':
+                print(f"Port: {port} - {Fore.GREEN}Open{Fore.RESET}")
+                scan_results["protocols"][proto].append({"port": port, "state": "open"})
+
+    icmp_result = nm.scanstats()
+    print(Fore.CYAN + '\n======================= Scanning Details (ICMP) =======================\n')
+    
+    if icmp_result["uphosts"] == "0":
+        print("ICMP is blocked or filtered")
+        scan_results["icmp"] = "blocked or filtered"
+    elif icmp_result["uphosts"] == "1":
+        print("ICMP is open")
+        scan_results["icmp"] = "open"
+    
+    print(f"\n{Fore.GREEN}Scan completed at: {current_time}{Fore.RESET}")
+    scan_results["completed_at"] = current_time
+    
+    return scan_results
 
     
-    if side == "external":
-        
 
-        show_interface()
-        scan_interface= input(f'\n{Fore.YELLOW + 'Choose an interface to scan(default is eth3):'} {Fore.RESET}') or 'eth3'
-        interface_arg = f"-e {scan_interface}" 
-        
 
-        tcp_port_number = 0
-        tcp_port_service = ""
-        udp_port_number = 0
-        udp_port_service = ""
-        vulner_number = 0
-        vulnerability = ""
-        scan_results["udp"] = {}
-        
-
-        scan_results["firewall_ip"] = target 
-    
-
-        current_time = time.strftime("%D (%H:%M:%S)")
-        scan_results["time_of_scan"] = current_time
-        print(f'\nScan {side} start at: {current_time}')
-        
-        
-
-        print (f"\nScanning TCP.....")
-        nm.scan(target, arguments=f"{interface_arg} {tcp_scan} -T 5")
-        print(Fore.CYAN + '\n======================= Scanning Detail (TCP) =======================\n')
-        if 'tcp' in nm[target]:
-            scan_results["tcp"] = {}
-            for port in nm[target]['tcp']:
-                port_info = nm[target]['tcp'][port]
-                tcp_port_number += 1
-                tcp_port_service += f"{port_info.get("name","unknow")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')}), "
-                
-                print(f"Port: {port} ({port_info["state"]})")
-                print(f'   Service: {port_info.get("name", "unknown")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})')
-                
-                if 'script' in port_info:
-                    vulnerabilities = port_info['script']
-                    if vulnerabilities:
-                        
-                        print('   vulnerbility: ', end= '')
-                        for vuln_name, vuln_description in vulnerabilities.items() :
-                            vulner_number += 1
-                            if vuln_name == "fingerprint-strings":
-                                print(f"   - {vuln_name}: fingerprint-strings")
-                                vulnerability += f"{vuln_name}: fingerprint-strings\n"                                
-                                break
-                            print(f"{vuln_description}")
-                            vulnerability += f"{vuln_description}"
-                            
-                    
-                    else:
-                        print("   Vulnerabilities: No vulnerabilities found.")
-                        vulnerability = 'no vulnerability found'
-                else:
-                    print("   Vulnerabilities: No vulners data available.")
-                    vulnerability = 'no vulnerability in vulners database'
-                    
-                vulnerability = vulnerability.replace("\t", "\n")
-
-                scan_results["tcp"][port] = {
-                    "state": port_info['state'],
-                    "service": f'{port_info.get("name", "unknown")} ({port_info.get("product","unknown")} {port_info.get("version","unknown")})',
-                    "vulner": f'{vulnerability}'
-                }                
-                vulnerability = ''
-            else:
-                print("no tcp port open")
-        
-        
-                
-
-        print (f"\nScanning UDP.....")
-        nm.scan(target, arguments=f"{interface_arg} {udp_scan} -T 5")
-        print(Fore.CYAN + '\n======================= Scanning Detail (UDP) =======================\n')
-        if 'udp' in nm[target]:
-            
-            for port in nm[target]['udp']:
-                port_info = nm[target]['udp'][port]
-                udp_port_number += 1
-                udp_port_service += f"{port_info.get("name","unknow")}, "
-                print(f"Port {port} ({port_info["state"]}):")
-                print(f"   Service: {port_info.get("name", "unknown")}\n")
-                scan_results["udp"][port] = {
-                    "state": port_info['state'],
-                    "service": port_info.get('name', 'unknown')
-                }
-        else:
-            print("no udp port open")
-            scan_results["udp"] = 0
-            
-
-        print (f"\nScanning ICMP.....")
-        scan_results["icmp"] = {}
-        nm.scan(target, arguments=f"{interface_arg} {icmp_scan} -T 5")     
-        icmp_result = nm.scanstats()
-        print(Fore.CYAN + '\n======================= Scanning Detail (ICMP) =======================\n')
-
-        if icmp_result["uphosts"] == "0":
-            print("ICMP is blocked or filtered")
-            scan_results["icmp"] = "ICMP is blocked or filtered"
-        if icmp_result["uphosts"] == "1":
-            print("ICMP is open")
-            scan_results["icmp"] = "ICMP is open"
-        
-
-        print(f'''\n{Fore.CYAN +'======================= General scan report =======================' + Fore.RESET} 
-        * The external firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
-        * {tcp_port_service} {udp_port_service} are listening in the external ip
-        * {scan_results["icmp"]} (ICMP packet to the external ip)
-        * {f"there are vulnerability ({Fore.RED + str(vulner_number) + Fore.RESET}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
-        ''')
-        scan_results["summary"] = f'''\n======================= General scan report ======================= 
-              * The external firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
-              * {tcp_port_service} {udp_port_service} are listening in the external ip
-              * {scan_results["icmp"]} (ICMP packet to the external ip)
-              * {f"there are vulnerability ({vulner_number}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
-              '''
-                
-    if side == "internal":
-        
-    
-        show_interface()
-        scan_interface= input(f'\n{Fore.YELLOW + 'Choose an interface to scan(default is eth2):'} {Fore.RESET}') or 'eth2'
-        interface_arg = f"-e {scan_interface}" 
-        
-    
-        target_range = target + "/24"
-        tcp_port_number = 0
-        tcp_port_service = ""
-        udp_port_number = 0
-        udp_port_service = ""
-        vulner_number = 0
-        vulnerability = ""
-        scan_results = {}
-        scan_results["firewall"] = {}
-        scan_results[f"firewall"]["ip"] = target
-
-    
-        current_time = time.strftime("%D (%H:%M:%S)")
-        scan_results["time_of_scan"] = current_time
-        print(f'\nScan {side} start at: {current_time}')
-
-        
-        
-    
-        scan_results[f"host_discovery"] = {}
-        print (f"\nScanning for host.....")
-        nm.scan(target_range, arguments=f'{interface_arg} {internal_network_discovery} -T 5')
-        print(Fore.CYAN + '\n======================= Scanning Detail (network discovery) =======================\n')
-        print(f'{len(nm.all_hosts())} host found')
-        for host in nm.all_hosts():
-            vendor_name = next(iter(nm[host]["vendor"].values()), None) if "vendor" in nm[host] and nm[host]["vendor"] else "Unknown"
-            print(f'{nm[host]["addresses"]["ipv4"]} | {nm[host]["addresses"]["mac"]} ({vendor_name})')
-            scan_results["host_discovery"][host] = f'{nm[host]["addresses"]["ipv4"]} | {nm[host]["addresses"]["mac"]} ({vendor_name})'
-        scan_results["host_discovery"]["host_number"] = f'{len(nm.all_hosts())}'
-        
-        
-    
-        print (f"\nScanning internal firewall (TCP).....")
-        nm.scan(target, arguments=f"{interface_arg} {lite_tcp_scan} -T 5")
-        print(Fore.CYAN + '\n======================= Scanning Internal Firewall (TCP) =======================\n')
-
-        if 'tcp' in nm[target]:
-            
-            scan_results[f"firewall"]["ip"] = target
-            scan_results["firewall"]["tcp"] = {}
-            for port in nm[target]['tcp']:
-                port_info = nm[target]['tcp'][port]
-                tcp_port_number += 1
-                tcp_port_service += f"{port_info.get("name","unknow")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')}), "
-                print(f"Port: {port} ({port_info["state"]})")
-                print(f'''   Service: {port_info.get("name", "unknown")} ({port_info.get("product",'unknown')} {port_info.get("version",'unknown')})''')
-                if 'script' in port_info:
-                    vulnerabilities = port_info['script']
-                    if vulnerabilities: 
-                        
-                        print('   vulnerbility: ', end= '')
-                        for vuln_name, vuln_description in vulnerabilities.items() :
-                            vulner_number += 1
-                            if vuln_name == "fingerprint-strings":
-                                print(f"   - {vuln_name}: fingerprint-strings")
-                                vulnerability += f"{vuln_name}: fingerprint-strings\n"                                
-                                break
-                            print(f"{vuln_description}")
-                            vulnerability += f"{vuln_description}"
-                    else:
-                        print("   Vulnerabilities: No vulnerabilities found.")
-                        vulnerability = 'no vulnerability found'
-                else:
-                    print("   Vulnerabilities: No vulners data available.")
-                    vulnerability = 'no vulnerability in vulners database'
-                
-                vulnerability = vulnerability.replace("\t", "\n")
-                scan_results["firewall"]["tcp"][port] = {
-                    "state": port_info['state'],
-                    "service": f'{port_info.get("name", "unknown")} ({port_info.get("product","unknown")} {port_info.get("version","unknown")})',
-                    "vulner": f'{vulnerability}'
-                }                
-                vulnerability = ''
-        else:
-            print("no tcp port open")
-            scan_results["firewall"]["tcp"] = 0
-                
-    
-        print (f"\nScanning UDP.....")
-        nm.scan(target, arguments=f"{interface_arg} {lite_udp_scan} -T 5")
-        print(Fore.CYAN + '\n======================= Scanning Internal Firewall (UDP) =======================\n')
-
-        if 'udp' in nm[target]:
-            
-            scan_results["firewall"]["udp"] = {}
-            for port in nm[target]['udp']:
-                port_info = nm[target]['udp'][port]
-                udp_port_number += 1
-                udp_port_service += f"{port_info.get("name","unknow")}, "
-                print(f"Port {port} ({port_info["state"]}):")
-                print(f"   Service: {port_info.get("name", "unknown")}\n")
-                scan_results["firewall"]["udp"][port] = {
-                    "state": port_info['state'],
-                    "service": port_info.get('name', 'unknown')
-                }
-        else:
-            print("no udp port open")
-            scan_results["firewall"]["udp"] = 0
-            
-    
-        print (f"\nScanning ICMP.....")
-        scan_results["firewall"]["icmp"] = {}
-        nm.scan(target, arguments=f"{interface_arg} {icmp_scan} -T 5")
-        icmp_result = nm.scanstats()
-        print(Fore.CYAN + '\n======================= Scanning Detail (ICMP) =======================\n')
-        if icmp_result["uphosts"] == "0":
-            print("ICMP is blocked or filtered")
-            scan_results["firewall"]["icmp"] = "ICMP is blocked or filtered"
-        if icmp_result["uphosts"] == "1":
-            print("ICMP is open")
-            scan_results["firewall"]["icmp"] = "ICMP is open"
-            
-
-    
-        if scan_results["firewall"]["tcp"] == 0 and scan_results["firewall"]["udp"] == 0:
-            print(f'''\n{Fore.CYAN +'======================= General scan report =======================' + Fore.RESET} 
-        * The internal firewall have no tcp and udp port open
-        * Admin GUI not accessible from the internal LAN 
-        * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
-        * There are no vulnerability in term of service from the internal side of the firewall
-        ''')
-            scan_results["firewall"]["summary"] = f'''\n======================= General scan report ======================= 
-              * The internal firewall have no tcp and udp port open
-              * Admin GUI not accessible from the internal LAN 
-              * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
-              * There are no vulnerability in term of service from the internal side of the firewall
-              '''
-        else:
-            print(f'''\n{Fore.CYAN +'======================= General scan report =======================' + Fore.RESET}
-        * The internal firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
-        * {tcp_port_service} {udp_port_service} are listening in the internal ip
-        * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
-        * {f"there are vulnerability ({Fore.RED + str(vulner_number) + Fore.RESET}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
-                ''')
-            scan_results["firewall"]["summary"] = f'''\n======================= General scan report ======================= 
-                * The internal firewall have {tcp_port_number} tcp and {udp_port_number} udp port open
-                * {tcp_port_service} {udp_port_service} are listening in the external ip
-                * {scan_results["firewall"]["icmp"]} (ICMP packet to the internal ip)
-                * {f"there are vulnerability ({Fore.RED + str(vulner_number) + Fore.RESET}) from the service open to public" if vulner_number > 0 else "no vulnerability found"}
-                '''    
-                
-    
-    return scan_results  
 
 
 def show_interface():
-    
-    command = ["nmap", "--iflist"]  
+    command = ["nmap", "--iflist"]
     result = subprocess.run(command, capture_output=True, text=True)
-    
-    
     pattern = r"(\b\w+\d+\b) \(\w+\) +([\da-fA-F:.]+/\d+)"
-
-    
     matches = set(re.findall(pattern, result.stdout))
-
-    
     sorted_matches = sorted(matches, key=lambda x: x[0])
-
-    
-    print(Fore.CYAN + "\n ======================= Your Network Interface List =======================")
+    print(Fore.CYAN + "\n======================= Your Network Interface List =======================")
     for dev, ip in sorted_matches:
         print(f"Interface {dev}: {ip}")
