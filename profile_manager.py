@@ -1,44 +1,34 @@
 import os
 import json
-import shutil  # Để sao chép file
+import shutil 
 import utils
-import platform  # Để kiểm tra hệ điều hành
-import subprocess  # Để mở file
+import platform 
+import subprocess  
 
 PROFILES_DIR = utils.PROFILES_DIR
-TEMPLATE_FILE = "evaluation_detail_template.xlsx"  # File template mặc định
-
-
+TEMPLATE_FILE = "evaluation_detail_template.xlsx"  
 def load_profile_names():
     if not os.path.exists(PROFILES_DIR):
         return ""
     return [name for name in os.listdir(PROFILES_DIR) if os.path.isdir(os.path.join(PROFILES_DIR, name))]
-
-
 def create_profile(profile_name):
     if profile_name in load_profile_names():
         print(f"Profile '{profile_name}' đã tồn tại. Vui lòng chọn tên khác.")
         return
-
     profile_path = os.path.join(PROFILES_DIR, profile_name)
     os.makedirs(profile_path, exist_ok=True)
-
-    # Tạo file profile.json
     profile_data = {
         "name": profile_name,
     }
     with open(os.path.join(profile_path, "profile.json"), 'w', encoding='utf8') as f:
         json.dump(profile_data, f)
-
-    # Sao chép file template vào thư mục profile
     template_path = os.path.join(os.getcwd(), TEMPLATE_FILE)
     destination_path = os.path.join(profile_path, TEMPLATE_FILE)
-
     if os.path.exists(template_path):
         shutil.copy(template_path, destination_path)
         print(f"Template '{TEMPLATE_FILE}' đã được sao chép vào {profile_path}")
         print(f"Nhấn vào liên kết sau để mở file template: {destination_path}")
-        open_file(destination_path)  # Mở file sau khi tạo
+        open_file(destination_path)  
     else:
         print(f"Không tìm thấy file template '{TEMPLATE_FILE}'. Vui lòng kiểm tra lại.")
 

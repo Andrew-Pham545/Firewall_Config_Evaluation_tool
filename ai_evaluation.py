@@ -1,12 +1,9 @@
 # ai_evaluation.py
 import google.generativeai as genai
 import key
-
-
 genai.configure(api_key=key.API_KEY)
 
 def evaluate_scan_result(scan_results):
-
     prompt = f"""
    
     giờ tôi sẽ đưa bạn 1 file kết quả đánh giá tường lừa bằng theo định dạng json. đây là đánh giá được custom lại từ SANS firewall checklist để phù hợp với đánh giá cấu hình cho firewall của cơ sở hạ tầng mạng nhỏ (như start up, công ty nhỏ chưa tới 100 host), tôi sẽ đưa bạn bộ tiêu chí, bộ chuẩn 5 bullet point và output yêu cầu bạn in ra
@@ -75,7 +72,5 @@ Tính sẵn sàng và dự phòng (Availability and Redundancy)
     •..."
    
     """
-    
-
     response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
     return response.text

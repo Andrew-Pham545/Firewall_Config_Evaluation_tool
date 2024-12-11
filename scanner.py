@@ -189,53 +189,77 @@ def scan_icmp_restrictions(target):
 
 
 def port_restriction_and_icmp_restriction_scan(target):
-    """
-    Scan specific ports for both TCP, UDP protocols, and perform an ICMP scan.
-    """
     current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
     port_list = (
-        "53,69,87,111,512-514,515,540,2000,2049,6000-6255,21,22,23,25,37,79,80," 
-        "109-110,119,123,135,137-139,143,161-162,179,389,443,445,514,1080,2001," 
+        "53,69,87,111,512-514,515,540,1194,2000,2049,6000-6255,21,22,23,25,37,79,80,"
+        "109-110,119,123,135,137-139,143,161-162,179,389,443,445,514,1080,2001,"
         "4001,4045,6001,8000,8080,8888"
     )
     
     show_interface()
-    interface = input(f'\n{Fore.YELLOW + "Choose an interface to scan :"} {Fore.RESET}') or 'eth3'
+    interface = input(f'\n{Fore.YELLOW}Choose an interface to scan: {Fore.RESET}') 
     nm = nmap.PortScanner()
+
+    # Port Scan
+    print(f"{Fore.GREEN}Scanning target for open ports: {target}{Fore.RESET}")
+    nm.scan(target, arguments=f"-e {interface} -p {port_list} -sS -sU -T4 -Pn")
     
-    print(f"{Fore.GREEN}Scanning target: {target}{Fore.RESET}")
-    # print(f"Checking ports: {port_list}\n")
-
-    # Gộp cả TCP, UDP và ICMP vào một lệnh nmap
-    nm.scan(target, arguments=f"-e {interface} -p {port_list} -sS -sU -PE --disable-arp-ping -T4")
-
-    print(f"{Fore.CYAN}Scan started at: {time.strftime('%Y-%m-%d %H:%M:%S')}{Fore.RESET}\n")
     print(f"{Fore.CYAN}======================= Open Ports ======================={Fore.RESET}")
-
     scan_results = {"target": target, "protocols": {}}
-    
-    # Xử lý kết quả cho từng giao thức (TCP, UDP, và ICMP)
-    for proto in nm[target].all_protocols():
-        print(f"\n{Fore.BLUE}Protocol: {proto.upper()}{Fore.RESET}")
-        scan_results["protocols"][proto] = []
-        for port in sorted(nm[target][proto].keys()):
-            if nm[target][proto][port]['state'] == 'open':
-                print(f"Port: {port} - {Fore.GREEN}Open{Fore.RESET}")
-                scan_results["protocols"][proto].append({"port": port, "state": "open"})
 
-    icmp_result = nm.scanstats()
-    print(Fore.CYAN + '\n======================= Scanning Details (ICMP) =======================\n')
     
-    if icmp_result["uphosts"] == "0":
-        print("ICMP is blocked or filtered")
-        scan_results["icmp"] = "blocked or filtered"
-    elif icmp_result["uphosts"] == "1":
-        print("ICMP is open")
+    
+    if target in nm.all_hosts():
+
+        protocols_found = nm[target].all_protocols()
+
+
+        for proto in protocols_found:
+            print(f"\n{Fore.BLUE}Protocol: {proto.upper()}{Fore.RESET}")
+            scan_results["protocols"][proto] = []
+
+
+            for port in sorted(nm[target][proto].keys()):
+                port_state = nm[target][proto][port]['state']
+                if port_state == 'open':
+                    print(f"Port: {port} - {Fore.GREEN}Open{Fore.RESET}")
+                    scan_results["protocols"][proto].append({"port": port, "state": "open"})
+                else:
+                    print(f"Port: {port} - {Fore.RED}{port_state.capitalize()}{Fore.RESET}")
+                    scan_results["protocols"][proto].append({"port": port, "state": port_state})
+
+        # Ensure UDP is explicitly marked as "close" if not found
+        if "udp" not in protocols_found:
+            print("====================")
+            print(f"\n{Fore.YELLOW}No UDP ports found.{Fore.RESET}")
+            scan_results["protocols"]["udp"] = [{"state": "close"}]
+
+        # Ensure TCP is explicitly marked as "close" if not found
+        if "tcp" not in protocols_found:
+            print(f"\n{Fore.YELLOW}No TCP ports found.{Fore.RESET}")
+            scan_results["protocols"]["tcp"] = [{"state": "close"}]
+
+    else:
+        print(f"{Fore.RED}Target not found in scan results.{Fore.RESET}")
+        scan_results = {"protocols": {"tcp": [{"state": "close"}], "udp": [{"state": "close"}]}}
+
+
+
+    # ICMP Scan
+    print(f"\n{Fore.GREEN}Scanning target for ICMP (ping): {target}{Fore.RESET}")
+    nm.scan(target, arguments="-PE -sn --disable-arp-ping")
+    
+    print(f"{Fore.CYAN}======================= ICMP Results ======================={Fore.RESET}")
+    if target in nm.all_hosts():
+        print(f"{Fore.GREEN}ICMP is open on target: {target}{Fore.RESET}")
         scan_results["icmp"] = "open"
-    
-    print(f"\n{Fore.GREEN}Scan completed at: {current_time}{Fore.RESET}")
+    else:
+        print(f"{Fore.RED}ICMP is blocked or filtered on target: {target}{Fore.RESET}")
+        scan_results["icmp"] = "blocked or filtered"
+
+    # Finalizing Results
     scan_results["completed_at"] = current_time
-    
+    print(f"\n{Fore.GREEN}Scan completed at: {current_time}{Fore.RESET}")
     return scan_results
 
     

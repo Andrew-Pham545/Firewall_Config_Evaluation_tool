@@ -3,16 +3,11 @@ import pandas as pd
 import time
 
 def read_template_to_dict(file_path):
-    # Load dữ liệu từ file Excel
     sheet_name = 'evaluation_detail'
-    df = pd.read_excel(file_path, sheet_name=sheet_name, header=2)  # Bắt đầu từ hàng thứ 3 để lấy tên cột thực sự
-
-    # Tạo dictionary để lưu kết quả
+    df = pd.read_excel(file_path, sheet_name=sheet_name, header=2)
     results_dict = {}
     current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
     results_dict["time_of_evaluation"] = current_time 
-
-    # Dictionary chứa các thông điệp cụ thể cho từng tiêu chí
     messages = {
         "Review the rulesets order": {
             "cons_message": "Incomplete or improperly ordered rulesets, allowing suspicious traffic.",
@@ -66,54 +61,34 @@ def read_template_to_dict(file_path):
             "cons_message": "No redundancy, risking firewall downtime during failures.",
             "pros_message": "Hot standby is configured for firewall redundancy."
         },
-        # Thêm các tiêu chí và thông điệp khác vào đây
     }
-
-    # Lặp qua từng dòng trong DataFrame
     current_criteria = None
     for index, row in df.iterrows():
-        # Lấy giá trị từ các cột
         criteria = row['Unnamed: 0']
         step = row['Unnamed: 1']
         check = row['Unnamed: 2']
         score = row['Unnamed: 3'] if 'Unnamed: 3' in row else None
-
-        # Bỏ qua dòng nếu criteria là "Criteria" hoặc step là "Step" (tiêu đề)
         if criteria == "Criteria" or step == "Step":
             continue
-        
-        # Nếu dòng có giá trị criteria, cập nhật current_criteria
         if pd.notna(criteria):
             current_criteria = criteria.strip()
             if current_criteria not in results_dict:
                 results_dict[current_criteria] = {"steps": {}, "score": 0}
             if pd.notna(score):
                 results_dict[current_criteria]["score"] = score
-
-                # Thêm thông điệp dựa trên điểm số
                 if current_criteria in messages:
                     if int(score) <= 2:
                         results_dict[current_criteria]["cons_message"] = messages[current_criteria]["cons_message"]
-                        print("hello")  
+                        
                     elif int(score) >= 3:
                         results_dict[current_criteria]["pros_message"] = messages[current_criteria]["pros_message"]
-
-        # Nếu không có tiêu chí hiện tại, bỏ qua dòng
         if not current_criteria:
             continue
-
-        # Nếu dòng có step và check, thêm thông tin vào dictionary
         if pd.notna(step) and pd.notna(check):
             step = step.strip()
             check_value = True if str(check).strip().upper() == 'TRUE' else False
             results_dict[current_criteria]["steps"][step] = check_value
-
     return results_dict
-
-
 def check_template_exists(profile_dir, template_name="evaluation_detail_template.xlsx"):
-    """
-    Kiểm tra xem file template có tồn tại trong thư mục profile hay không.
-    """
     template_path = os.path.join(profile_dir, template_name)
     return os.path.exists(template_path), template_path
