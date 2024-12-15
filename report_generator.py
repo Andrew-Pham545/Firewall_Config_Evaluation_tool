@@ -121,6 +121,16 @@ def create_firewall_report(data_dict, profile_name, output_filename="firewall_re
         bulletFontName="Helvetica-Bold",
         textColor=colors.black,
     )
+    action_plan_small_text = ParagraphStyle(
+    name="ActionPlanSmallText",
+    fontName="Helvetica",
+    fontSize=12,
+    leading=16,
+    leftIndent=30,
+    bulletIndent=10, 
+    bulletFontName="Helvetica-Bold",
+    textColor=colors.black,
+)
     pros_list = [v["pros_message"] for v in criteria.values() if "pros_message" in v]
     cons_list = [v["cons_message"] for v in criteria.values() if "cons_message" in v]
     if pros_list != []:
@@ -260,7 +270,7 @@ def create_firewall_report(data_dict, profile_name, output_filename="firewall_re
         for rec in recommendations:
             elements.append(Paragraph(f"• {rec}", bullet_style))
     else:
-        elements.append(Paragraph("All criteria are satisfactory. No specific recommendations for this network", bullet_style))
+        elements.append(Paragraph("Most criteria are chekced. Your firewall configuration can consider to be safe", bullet_style))
     elements.append(Spacer(1, 20))
     action_plan = []
     if "Logging" in evaluation_result and evaluation_result["Logging"]["score"] == 0:
@@ -274,16 +284,16 @@ def create_firewall_report(data_dict, profile_name, output_filename="firewall_re
         if failed_steps:
             action_plan.append("• Review and block the following illegal or spoofed IP addresses:")
             for step in failed_steps:
-                action_plan.append(f"ㅤㅤㅤ{step}")
+                action_plan.append(f"+{step}")
                 
     tcp_open_ports = [p["port"] for p in scanner_result["protocols"]["tcp"] if p["state"] == "open"]
     udp_open_ports = [p["port"] for p in scanner_result["protocols"]["udp"] if p["state"] == "open"]
     if tcp_open_ports or udp_open_ports:
         action_plan.append("• Review and secure the following open ports:")
         if tcp_open_ports:
-            action_plan.append(f"ㅤㅤㅤTCP: {', '.join(map(str, tcp_open_ports))}")
+            action_plan.append(f"+TCP: {', '.join(map(str, tcp_open_ports))}")
         if udp_open_ports:
-            action_plan.append(f"ㅤㅤㅤUDP: {', '.join(map(str, udp_open_ports))}")
+            action_plan.append(f"+UDP: {', '.join(map(str, udp_open_ports))}")
     if scanner_result.get("icmp") == "open":
         action_plan.append("• Block unnecessary ICMP traffic to reduce the risk of reconnaissance attacks.")
     if "• Review the rulesets order (in the following order)" in evaluation_result:
@@ -291,20 +301,25 @@ def create_firewall_report(data_dict, profile_name, output_filename="firewall_re
         if failed_steps:
             action_plan.append("• Optimize firewall ruleset order to minimize conflicts and improve performance:")
             for step in failed_steps:
-                action_plan.append(f"ㅤㅤㅤ{step}")
+                action_plan.append(f"+{step}")
     if "Vulnerability assessments/Testing" in evaluation_result:
         failed_steps = [step for step, passed in evaluation_result["Vulnerability assessments/Testing"]["steps"].items() if not passed]
         if failed_steps:
             action_plan.append("• Perform regular vulnerability assessments using tools like nmap to identify open ports and vulnerabilities:")
             for step in failed_steps:
-                action_plan.append(f"ㅤㅤㅤ{step}")
+                action_plan.append(f"+{step}")
     if "completed_at" in scanner_result:
         action_plan.append(f"• Ensure periodic scans like the one completed on {scanner_result['completed_at']}.")
     elements.append(Paragraph("Action Plan:", styles["Heading1"]))
     elements.append(Spacer(1, 10))
     for action in action_plan:
-        elements.append(Paragraph(f"{action}", bullet_style))
-        elements.append(Spacer(1, 3))
+        if "+" in action:
+            
+            elements.append(Paragraph(f"{action}", action_plan_small_text)) 
+            elements.append(Spacer(1, 3))
+        else:
+            elements.append(Paragraph(f"{action}", bullet_style))
+            elements.append(Spacer(1, 3))
     if ai_message != '':
         bullet_points = [f"• {point.strip()}" for point in ai_message.split("•") if point.strip()]
         elements.append(Spacer(1, 10))
@@ -504,13 +519,13 @@ def create_pie_chart_from_criteria(criteria):
     pie.slices[0].fillColor = colors.HexColor("#4A90E2")  # Xanh dương
     pie.slices[1].fillColor = colors.HexColor("#F5A623")  # Cam
     pie.slices[2].fillColor = colors.HexColor("#D0021B")  # Đỏ
-    legend_x = 300
-    legend_y = 170
-    label_offset = 20
-    for i, label in enumerate(labels_with_percent):
-        color = pie.slices[i].fillColor
-        drawing.add(String(legend_x, legend_y - (i * label_offset), label, fontSize=12, fillColor=colors.black))
-        drawing.add(Line(legend_x - 15, legend_y - (i * label_offset) + 5, legend_x - 5, legend_y - (i * label_offset) + 5, strokeColor=color, strokeWidth=10))
+    # legend_x = 300
+    # legend_y = 170
+    # label_offset = 20
+    # for i, label in enumerate(labels_with_percent):
+    #     color = pie.slices[i].fillColor
+    #     drawing.add(String(legend_x, legend_y - (i * label_offset), label, fontSize=12, fillColor=colors.black))
+    #     drawing.add(Line(legend_x - 15, legend_y - (i * label_offset) + 5, legend_x - 5, legend_y - (i * label_offset) + 5, strokeColor=color, strokeWidth=10))
     pie.sideLabels = True  
     pie.simpleLabels = False
     pie.pointerLabelMode = 'LeftRight'

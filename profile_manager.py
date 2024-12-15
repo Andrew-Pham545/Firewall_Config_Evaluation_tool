@@ -11,12 +11,13 @@ def load_profile_names():
     if not os.path.exists(PROFILES_DIR):
         return ""
     return [name for name in os.listdir(PROFILES_DIR) if os.path.isdir(os.path.join(PROFILES_DIR, name))]
+
 def create_profile(profile_name):
     if profile_name in load_profile_names():
-        print(f"Profile '{profile_name}' đã tồn tại. Vui lòng chọn tên khác.")
+        print(f"Profile '{profile_name}' already exist. please try again and choose different name.")
         return
     profile_path = os.path.join(PROFILES_DIR, profile_name)
-    os.makedirs(profile_path, exist_ok=True)
+    os.makedirs(profile_path, exist_ok= True)
     profile_data = {
         "name": profile_name,
     }
@@ -26,13 +27,13 @@ def create_profile(profile_name):
     destination_path = os.path.join(profile_path, TEMPLATE_FILE)
     if os.path.exists(template_path):
         shutil.copy(template_path, destination_path)
-        print(f"Template '{TEMPLATE_FILE}' đã được sao chép vào {profile_path}")
-        print(f"Nhấn vào liên kết sau để mở file template: {destination_path}")
+        print(f"Template '{TEMPLATE_FILE}' is created in {profile_path}")
+        # print(f"Nhấn vào liên kết sau để mở file template: {destination_path}")
         open_file(destination_path)  
     else:
-        print(f"Không tìm thấy file template '{TEMPLATE_FILE}'. Vui lòng kiểm tra lại.")
+        print(f"checklist template file not found '{TEMPLATE_FILE}'.")
 
-    print(f"Profile '{profile_name}' đã được tạo.")
+    print(f"Profile '{profile_name}' is created.")
 
 
 def open_file(file_path):
@@ -45,7 +46,7 @@ def open_file(file_path):
         else:
             subprocess.run(["xdg-open", file_path])  # Linux
     except Exception as e:
-        print(f"Không thể mở file: {e}")
+        print(f"Can't open file: {e}")
 
 
 def load_profile_data(profile_names_para):
@@ -53,7 +54,7 @@ def load_profile_data(profile_names_para):
 
     # Kiểm tra nếu file profile.json tồn tại
     if not os.path.isfile(profile_path):
-        print(f"Profile '{profile_names_para}' không tồn tại.")
+        print(f"Profile '{profile_names_para}' not exist.")
         return None
 
     # Mở và load dữ liệu từ file profile.json

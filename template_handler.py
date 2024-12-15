@@ -9,7 +9,7 @@ def read_template_to_dict(file_path):
     current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
     results_dict["time_of_evaluation"] = current_time 
     messages = {
-        "Review the rulesets order": {
+        "Review the rulesets order (if the ruleset is inteface-specific then evaluate as the description)": {
             "cons_message": "Incomplete or improperly ordered rulesets, allowing suspicious traffic.",
             "pros_message": "Rulesets follow best practices: anti-spoofing, permit, deny & log."
         },
@@ -89,6 +89,7 @@ def read_template_to_dict(file_path):
             check_value = True if str(check).strip().upper() == 'TRUE' else False
             results_dict[current_criteria]["steps"][step] = check_value
     return results_dict
+
 def check_template_exists(profile_dir, template_name="evaluation_detail_template.xlsx"):
     template_path = os.path.join(profile_dir, template_name)
     return os.path.exists(template_path), template_path
