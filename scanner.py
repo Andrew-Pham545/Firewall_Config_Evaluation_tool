@@ -129,9 +129,7 @@ def port_restriction_scan(target):
     
     current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
     
-    """
-    Scan specific ports for both TCP and UDP protocols and report if they are open.
-    """
+
     # Danh sách dịch vụ và cổng cần kiểm tra (đơn giản hóa bằng cách liệt kê cổng trực tiếp)
     port_list = (
         "53,69,87,111,512-514,515,540,2000,2049,6000-6255,21,22,23,25,37,79,80,"
@@ -167,7 +165,7 @@ def scan_icmp_restrictions(target):
     Perform an ICMP scan on the target and return the results.
     """
     nm = nmap.PortScanner()
-    icmp_scan = "-PE --disable-arp-ping"  # ICMP scan arguments
+    icmp_scan = "-PE --disable-arp-ping"  
 
     current_time = time.strftime("%d/%m/%Y (%H:%M:%S)")
 
@@ -228,13 +226,13 @@ def port_restriction_and_icmp_restriction_scan(target):
                     print(f"Port: {port} - {Fore.RED}{port_state.capitalize()}{Fore.RESET}")
                     scan_results["protocols"][proto].append({"port": port, "state": port_state})
 
-        # Ensure UDP is explicitly marked as "close" if not found
+        
         if "udp" not in protocols_found:
             print("====================")
             print(f"\n{Fore.YELLOW}No UDP ports found.{Fore.RESET}")
             scan_results["protocols"]["udp"] = [{"state": "close"}]
 
-        # Ensure TCP is explicitly marked as "close" if not found
+        
         if "tcp" not in protocols_found:
             print(f"\n{Fore.YELLOW}No TCP ports found.{Fore.RESET}")
             scan_results["protocols"]["tcp"] = [{"state": "close"}]
@@ -245,7 +243,7 @@ def port_restriction_and_icmp_restriction_scan(target):
 
 
 
-    # ICMP Scan
+
     print(f"\n{Fore.GREEN}Scanning target for ICMP (ping): {target}{Fore.RESET}")
     nm.scan(target, arguments="-PE -sn --disable-arp-ping")
     
